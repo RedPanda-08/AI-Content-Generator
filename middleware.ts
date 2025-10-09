@@ -5,26 +5,25 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-
-  // Create a Supabase client that is safe to use in middleware
   const supabase = createMiddlewareClient({ req, res });
 
-  // Get the session from the cookies
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  // This line is the crucial fix: It refreshes the session on every request.
+  await supabase.auth.getSession();
 
-  // If the user is not signed in and they are trying to access the dashboard...
-  if (!session) {
-    // ...redirect them to the login page.
+  // The rest of the logic remains the same.
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session && req.nextUrl.pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  // If they are signed in, allowed.
   return res;
 }
 
-//  middleware only runs on the dashboard page.
+// Update the matcher to protect all dashboard routes
 export const config = {
-  matcher: '/dashboard',
+  matcher: [
+    '/dashboard',
+    '/dashboard/:path*',
+  ],
 };
