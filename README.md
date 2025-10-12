@@ -73,6 +73,7 @@ npm run dev
 Open http://localhost:3000 with your browser to see the result.
 
 🔮 Future Work
+
 --> Reconnect Live AI API: Replace the current mock API with a live connection to a service like OpenAI, Google Gemini, or a stable Hugging Face model once billing is set up.
 
 --> Content Calendar: Implement a visual calendar where users can schedule their generated content.
