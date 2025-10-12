@@ -57,6 +57,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY='YOUR_SUPABASE_ANON_KEY'
 # API Key for the AI model (e.g., Hugging Face)
 # This is not required while using the mock API
 HUGGINGFACE_API_TOKEN='your_hf_token_here'
+NOTE: We are using mock api just for testing. Will replace it with actual AI api soon :)
 
 To get your Supabase credentials:
 
@@ -72,8 +73,7 @@ npm run dev
 Open http://localhost:3000 with your browser to see the result.
 
 🔮 Future Work
-Reconnect Live AI API: Replace the current mock API with a live connection to a service like OpenAI, Google Gemini, or a stable Hugging Face model once billing is set up.
+--> Reconnect Live AI API: Replace the current mock API with a live connection to a service like OpenAI, Google Gemini, or a stable Hugging Face model once billing is set up.
 
-Content Calendar: Implement a visual calendar where users can schedule their generated content.
+--> Content Calendar: Implement a visual calendar where users can schedule their generated content.
 
-"Copy to Clipboard" Functionality: Add a one-click button to easily copy the generated text.
