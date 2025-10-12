@@ -1,4 +1,5 @@
 🤖 ContentAI: AI-Powered Content Command Center
+
 ContentAI is a full-stack, AI-powered SaaS application designed to help social media managers and businesses streamline their content creation workflow. It acts as a strategic assistant that learns a user's unique brand voice and generates tailored, high-quality posts for various social media platforms.
 
 The main generator interface, designed for a clean and intuitive user experience.
@@ -40,8 +41,8 @@ Node.js (v18 or later)
 npm or yarn
 
 1. Clone the Repository
-git clone [https://github.com/your-username/ai-content-command-center.git](https://github.com/your-username/ai-content-command-center.git)
-cd ai-content-command-center
+git clone [https://github.com/your-username/AI-Content-Generator.git](https://github.com/your-username/AI-Content-Generator.git)
+cd contentgenerator
 
 2. Install Dependencies
 npm install
