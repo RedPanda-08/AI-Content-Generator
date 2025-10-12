@@ -12,7 +12,7 @@ export default function HomePage() {
         <div className="absolute bottom-20 right-1/3 w-96 h-96 bg-red-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      {/* ===== Header ===== */}
+      {/*  Header  */}
       <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-xl bg-black/50 border-b border-white/10">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
           <div className="flex items-center gap-3">
@@ -27,14 +27,14 @@ export default function HomePage() {
           </nav>
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-gray-300 hover:text-white font-medium transition-colors">Log In</Link>
-            <Link href="/signup" className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 rounded-xl font-semibold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transform hover:-translate-y-0.5 transition-all">
+            <Link href="/login" className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 rounded-xl font-semibold shadow-lg shadow-orange-500/30 hover:shadow-orange-500/50 transform hover:-translate-y-0.5 transition-all">
               Get Started
             </Link>
           </div>
         </div>
       </header>
       
-      {/* ===== Hero Section ===== */}
+      {/*Hero Section */}
       <section className="relative flex flex-col items-center justify-center min-h-screen px-4 pt-20">
         <div className="relative z-10 space-y-8 max-w-5xl mx-auto text-center">
           {/* Badge */}
@@ -62,7 +62,7 @@ export default function HomePage() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row justify-center gap-4 pt-6">
             <Link 
-              href="/signup" 
+              href="/dashboard" 
               className="group px-8 py-4 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 rounded-xl font-semibold text-lg shadow-2xl shadow-orange-500/50 hover:shadow-orange-500/70 transform hover:-translate-y-1 transition-all duration-200 flex items-center justify-center gap-2"
             >
               Start Free Trial
@@ -145,7 +145,7 @@ export default function HomePage() {
               { icon: Zap, title: 'Lightning Fast Generation', desc: 'Create professional content in seconds with our advanced AI engine', color: 'from-orange-500 to-yellow-500' },
               { icon: Target, title: 'Brand Voice Matching', desc: 'AI learns your unique voice and maintains consistency across all content', color: 'from-pink-500 to-red-500' },
               { icon: BarChart2, title: 'Performance Analytics', desc: 'Get AI-powered insights to optimize your content strategy', color: 'from-purple-500 to-pink-500' },
-              { icon: Clock, title: 'Schedule & Automate', desc: 'Plan your content calendar and publish automatically', color: 'from-blue-500 to-cyan-500' },
+              { icon: Clock, title: 'Schedule & Automate', desc: 'Stay organized — plan your content and never miss a day!', color: 'from-blue-500 to-cyan-500' },
               { icon: Sparkles, title: 'Multi-Platform Support', desc: 'Optimize content for Instagram, Twitter, LinkedIn, and more', color: 'from-green-500 to-emerald-500' },
               { icon: TrendingUp, title: 'Trend Analysis', desc: 'Stay ahead with real-time trending topic recommendations', color: 'from-red-500 to-orange-500' }
             ].map((feature, i) => (
@@ -161,7 +161,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== How It Works Section ===== */}
+      {/*  How It Works Section  */}
       <section id="how-it-works" className="py-32 bg-white/5 backdrop-blur-sm border-y border-white/10">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-20">
@@ -195,7 +195,7 @@ export default function HomePage() {
       </section>
 
 
-      {/* ===== Final CTA Section ===== */}
+      {/*  Final CTA Section */}
       <section className="py-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 via-pink-500/20 to-red-500/20 blur-3xl"></div>
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
@@ -209,7 +209,7 @@ export default function HomePage() {
             Join thousands of creators who are already using AI to transform their social media presence
           </p>
           <Link 
-            href="/signup" 
+            href="/login" 
             className="group inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 rounded-xl font-bold text-xl shadow-2xl shadow-orange-500/50 hover:shadow-orange-500/70 transform hover:-translate-y-1 transition-all duration-200"
           >
             Start Creating for Free
@@ -219,7 +219,7 @@ export default function HomePage() {
         </div>
       </section>
       
-      {/* ===== Footer ===== */}
+      {/*  Footer */}
       <footer className="border-t border-white/10 bg-black/50 backdrop-blur-xl py-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 mb-8">

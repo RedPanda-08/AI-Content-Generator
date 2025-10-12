@@ -1,4 +1,3 @@
-// File: components/Sidebar.tsx
 'use client';
 import Link from 'next/link';
 import { LayoutDashboard, Settings, Bot, History, Menu, X, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -9,7 +8,7 @@ import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
 const navItems = [
   { name: 'Generator', href: '/dashboard', icon: Bot },
   { name: 'History', href: '/dashboard/history', icon: History },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  { name: 'Brand Voice', href: '/dashboard/settings', icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -109,7 +108,7 @@ export default function Sidebar() {
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200 ${isCollapsed ? 'justify-center' : ''}`}
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />
-            <span className={`font-medium whitespace-nowrap transition-opacity ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>Logout</span>
+            <span className={`font-medium whitespace-nowrap transition-opacity cursor-pointer ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>Logout</span>
           </button>
         </div>
       </aside>

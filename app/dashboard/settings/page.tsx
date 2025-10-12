@@ -1,11 +1,8 @@
-// File: app/dashboard/settings/page.tsx
 'use client';
-
 import { useState, useEffect } from 'react';
 import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
-import { Loader2 } from 'lucide-react'; // We'll use a loader icon
+import { Loader2 } from 'lucide-react'; 
 
-// Note: We create a client here because this is a client component.
 const supabase = createPagesBrowserClient();
 
 export default function SettingsPage() {
@@ -61,7 +58,7 @@ export default function SettingsPage() {
   }
 
   return (
-    // This main div centers everything on the page
+    // main div of the page which centers everything
     <div className="w-full flex flex-col items-center pt-8">
       <h1 className="text-4xl font-bold text-white mb-8 text-center">Brand Voice Settings</h1>
       

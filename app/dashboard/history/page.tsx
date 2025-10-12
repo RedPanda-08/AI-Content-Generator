@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client'; 
 import { Loader2 } from 'lucide-react';
@@ -17,7 +16,7 @@ export default function HistoryPage() {
 
   useEffect(() => {
     const fetchGenerations = async () => {
-      const { data: { user } } = await supabase.auth.getUser(); 
+      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         const { data, error } = await supabase
           .from('generations')
@@ -27,14 +26,14 @@ export default function HistoryPage() {
 
         if (error) {
           console.error('Error fetching generations:', error);
-        } else {
+        } else if (data) {
           setGenerations(data);
         }
       }
       setLoading(false);
     };
     fetchGenerations();
-  }, []); 
+  }, []);
 
   if (loading) {
     return (
@@ -46,10 +45,12 @@ export default function HistoryPage() {
 
   return (
     <div>
-      <h1 className="text-4xl font-bold text-white mb-8 ml-5 py-5">Content History</h1>
+      <h1 className="text-4xl font-bold text-white mb-8">Content History</h1>
+      
       {generations.length === 0 ? (
         <div className="text-center text-gray-400 bg-[#1E1F20] p-8 rounded-lg border border-gray-700">
           <p>You haven&apos;t generated any content yet.</p>
+          <p className="mt-2">Go to the Generator to get started!</p>
         </div>
       ) : (
         <div className="space-y-6">

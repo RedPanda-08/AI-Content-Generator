@@ -1,4 +1,3 @@
-// File: lib/supabase.ts
 import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs'
 
 // This is a client-side supabase client

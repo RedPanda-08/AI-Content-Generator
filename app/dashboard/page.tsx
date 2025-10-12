@@ -1,15 +1,15 @@
-// File: app/dashboard/page.tsx
 'use client';
 import { useState } from 'react';
-import { Send, Bot, Sparkles, User } from 'lucide-react';
+import { Send, Bot, Sparkles, User, Copy, Check } from 'lucide-react';
 import Textarea from 'react-textarea-autosize'; 
 
 export default function GeneratorPage() {
-  const [prompt, setPrompt] = useState(''); // The text currently in the input box
-  const [submittedPrompt, setSubmittedPrompt] = useState(''); // The prompt that was sent to the API
+  const [prompt, setPrompt] = useState('');
+  const [submittedPrompt, setSubmittedPrompt] = useState('');
   const [generatedContent, setGeneratedContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -30,54 +30,57 @@ export default function GeneratorPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `API Error: ${response.statusText}`);
+        throw new Error(errorData.error || 'Something went wrong');
       }
+
       const data = await response.json();
       setGeneratedContent(data.content);
-    } 
-    catch (err) {
-      const error = err as { message: string };
-      setError(error.message);
-    } finally {
-      setIsGenerating(false);
-      setPrompt('');
-
-    }
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message);
+    } finally {
+      setIsGenerating(false);
+      setPrompt('');
+    }
   };
   
   const handleCardClick = (text: string) => {
     setPrompt(text);
   };
+  
+  const handleCopy = () => {
+    if (!generatedContent) return;
+    navigator.clipboard.writeText(generatedContent).then(() => {
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000); 
+    });
+  };
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto px-4 py-6">
-      {/* Main content area */}
       <div className="flex-grow overflow-y-auto pr-4">
-        {/* --- UPDATED LOGIC --- */}
-        {/* If no prompt has been submitted yet, show the welcome screen */}
         {!submittedPrompt ? (
-          <div className="text-center">
-             <div className="inline-block p-5 bg-gradient-to-br from-orange-500 to-pink-600 rounded-full mb-6">
-               <Bot size={40} className="text-white" />
+            <div className="text-center">
+              <div className="inline-block p-5 bg-gradient-to-br from-orange-500 to-pink-600 rounded-full mb-6">
+                <Bot size={40} className="text-white" />
+              </div>
+             <h1 className="text-4xl md:text-5xl font-bold text-gray-300">
+               Hello, how can I help today?
+             </h1>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12">
+                <div onClick={() => handleCardClick('Write a witty tweet about the struggles of debugging code')} className="p-4 bg-[#1E1F20] hover:bg-[#2a2b2c] border border-gray-700 rounded-lg transition-colors cursor-pointer text-left">
+                  <h3 className="font-semibold text-gray-200">Witty Tweet</h3>
+                  <p className="text-sm text-gray-500">about debugging struggles</p>
+                </div>
+                <div onClick={() => handleCardClick('Create an engaging Instagram caption for a picture of a sunset')} className="p-4 bg-[#1E1F20] hover:bg-[#2a2b2c] border border-gray-700 rounded-lg transition-colors cursor-pointer text-left">
+                  <h3 className="font-semibold text-gray-200">Instagram Caption</h3>
+                  <p className="text-sm text-gray-500">for a sunset picture</p>
+                </div>
              </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-300">
-              Hello, how can I help today?
-            </h1>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12">
-               <div onClick={() => handleCardClick('Write a witty tweet about the struggles of debugging code')} className="p-4 bg-[#1E1F20] hover:bg-[#2a2b2c] border border-gray-700 rounded-lg transition-colors cursor-pointer text-left">
-                 <h3 className="font-semibold text-gray-200">Witty Tweet</h3>
-                 <p className="text-sm text-gray-500">about debugging struggles</p>
-               </div>
-               <div onClick={() => handleCardClick('Create an engaging Instagram caption for a picture of a sunset')} className="p-4 bg-[#1E1F20] hover:bg-[#2a2b2c] border border-gray-700 rounded-lg transition-colors cursor-pointer text-left">
-                 <h3 className="font-semibold text-gray-200">Instagram Caption</h3>
-                 <p className="text-sm text-gray-500">for a sunset picture</p>
-               </div>
-            </div>
-          </div>
+           </div>
         ) : (
-          /* If a prompt has been submitted, show the conversation view */
+          // Once a prompt is submitted, show the conversation view
           <div className="space-y-8">
-            {/* User's Prompt */}
             <div className="flex gap-4 items-start">
               <User className="w-8 h-8 flex-shrink-0 mt-1" />
               <p className="font-semibold text-lg">{submittedPrompt}</p>
@@ -94,7 +97,16 @@ export default function GeneratorPage() {
               ) : error ? (
                 <div className="text-red-400 p-4 bg-red-900/20 rounded-lg">{error}</div>
               ) : (
-                <div className="text-white leading-relaxed whitespace-pre-wrap">{generatedContent}</div>
+                <div className="text-white leading-relaxed whitespace-pre-wrap flex-1 min-w-0">
+                    {/* The new "Copy" button */}
+                    <div className="flex justify-end mb-2">
+                        <button onClick={handleCopy} className="flex items-center gap-2 px-3 py-1 bg-gray-700/50 hover:bg-gray-700 rounded-md text-sm text-gray-300 transition-colors">
+                            {copySuccess ? <Check size={16} /> : <Copy size={16} />}
+                            {copySuccess ? 'Copied!' : 'Copy'}
+                        </button>
+                    </div>
+                    {generatedContent}
+                </div>
               )}
             </div>
           </div>
