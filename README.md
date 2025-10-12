@@ -57,6 +57,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY='YOUR_SUPABASE_ANON_KEY'
 # API Key for the AI model (e.g., Hugging Face)
 # This is not required while using the mock API
 HUGGINGFACE_API_TOKEN='your_hf_token_here'
+
 NOTE: We are using mock api just for testing. Will replace it with actual AI api soon :)
 
 To get your Supabase credentials:
