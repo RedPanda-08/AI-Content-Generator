@@ -1,81 +1,99 @@
-🤖 ContentAI: AI-Powered Content Command Center
+Of course. Now that you've successfully integrated the live OpenAI API, your README file needs an update to reflect the project's new capabilities.
+
+Here is the revised, fully updated README file.
+
+-----
+
+# 🤖 ContentAI: AI-Powered Content Command Center
 
 ContentAI is a full-stack, AI-powered SaaS application designed to help social media managers and businesses streamline their content creation workflow. It acts as a strategic assistant that learns a user's unique brand voice and generates tailored, high-quality posts for various social media platforms.
 
-The main generator interface, designed for a clean and intuitive user experience.
+-----
 
-✨ Key Features
-AI-Powered Content Generation: Leverages a powerful AI model to generate creative and relevant social media content from a simple prompt.
+## ✨ Key Features
 
-Personalized Brand Voice: Users can define their brand's unique tone, personality, and keywords, ensuring every piece of generated content is perfectly on-brand.
+  * **AI-Powered Content Generation:** Leverages **OpenAI's GPT-4o model** to generate creative and relevant social media content from a simple prompt.
+  * **AI-Powered Content Analysis:** Get intelligent, actionable feedback on existing content to improve readability, engagement, and SEO alignment with your brand voice.
+  * **Personalized Brand Voice:** Users can define their brand's unique tone, personality, and keywords, ensuring every piece of generated content is perfectly on-brand.
+  * **Secure User Authentication:** A complete and secure system for users to sign up, log in, and manage their accounts, built with Supabase.
+  * **Content History:** Automatically saves every generated piece of content to a user-specific history page, allowing for easy review and reuse.
+  * **Protected Routes:** Secure middleware ensures that only authenticated users can access the application's dashboard and features.
+  * **Responsive & Modern UI:** A sleek, collapsible, and mobile-friendly dashboard built with Tailwind CSS.
 
-Secure User Authentication: A complete and secure system for users to sign up, log in, and manage their accounts, built with Supabase.
+-----
 
-Content History: Automatically saves every generated piece of content to a user-specific history page, allowing for easy review and reuse.
+## 🛠️ Tech Stack
 
-Responsive & Modern UI: A sleek, collapsible, and mobile-friendly dashboard built with Tailwind CSS.
+  * **Framework:** Next.js (with App Router)
+  * **Language:** TypeScript
+  * **Backend & Database:** Supabase
+  * **Styling:** Tailwind CSS
+  * **AI Model:** OpenAI (GPT-4o)
+  * **UI Components:** Lucide React (for icons), react-textarea-autosize
 
-Protected Routes: Secure middleware ensures that only authenticated users can access the application's dashboard and features.
+-----
 
-(Development) Mock API: Currently utilizes a mock API to ensure 100% uptime and stability for development and demonstration, perfectly simulating the AI's behavior.
+## 🚀 Getting Started
 
-🛠️ Tech Stack
-Framework: Next.js (with App Router)
-
-Language: TypeScript
-
-Backend & Database: Supabase
-
-Styling: Tailwind CSS
-
-AI Model Integration: (Currently Mocked) API connection for Hugging Face, OpenAI, or Google Gemini.
-
-UI Components: Lucide React (for icons), react-textarea-autosize.
-
-🚀 Getting Started
 Follow these instructions to set up and run the project on your local machine.
 
-Prerequisites
-Node.js (v18 or later)
+### Prerequisites
 
-npm or yarn
+  * Node.js (v18 or later)
+  * npm or yarn
 
-1. Clone the Repository
-git clone [https://github.com/your-username/AI-Content-Generator.git](https://github.com/your-username/AI-Content-Generator.git)
+### 1\. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/contentgenerator.git
 cd contentgenerator
+```
 
-2. Install Dependencies
+### 2\. Install Dependencies
+
+```bash
 npm install
+```
 
-3. Set Up Environment Variables
-You will need to create a .env.local file in the root of the project. Copy the contents of .env.example (if you have one) or create it from scratch.
+### 3\. Set Up Environment Variables
 
+You will need to create a **`.env.local`** file in the root of the project. Copy the contents of `.env.example` (if you have one) or create it from scratch with the following variables:
+
+```bash
 # Supabase Credentials
 NEXT_PUBLIC_SUPABASE_URL='YOUR_SUPABASE_PROJECT_URL'
 NEXT_PUBLIC_SUPABASE_ANON_KEY='YOUR_SUPABASE_ANON_KEY'
 
-# API Key for the AI model (e.g., Hugging Face)
-# This is not required while using the mock API
-HUGGINGFACE_API_TOKEN='your_hf_token_here'
+# OpenAI API Key
+OPENAI_API_KEY='sk-...'
+```
 
-NOTE: We are using mock api just for testing. Will replace it with actual AI api soon :)
+**To get your Supabase credentials:**
 
-To get your Supabase credentials:
+1.  Go to your Supabase project dashboard.
+2.  Navigate to **Project Settings** \> **API**.
+3.  You will find your **Project URL** and **anon public** key there.
 
-Go to your Supabase project dashboard.
+**To get your OpenAI API key:**
 
-Navigate to Project Settings > API.
+1.  Go to the [OpenAI Platform](https://platform.openai.com/) and log in.
+2.  Navigate to the **API keys** section.
+3.  Click **Create new secret key** and copy it.
 
-You will find your Project URL and anon public key there.
+### 4\. Run the Development Server
 
-4. Run the Development Server
+```bash
 npm run dev
+```
 
-Open http://localhost:3000 with your browser to see the result.
+Open [http://localhost:3000](https://www.google.com/search?q=http://localhost:3000) with your browser to see the result.
 
-🔮 Future Work
+-----
 
---> Reconnect Live AI API: Replace the current mock API with a live connection to a service like OpenAI, Google Gemini, or a stable Hugging Face model once billing is set up.
+## 🔮 Future Work
 
---> Content Calendar: Implement a visual calendar where users can schedule their generated content.
+ --> Streaming AI Responses: Implement streaming for AI responses to provide a real-time, typewriter-like effect for a  better user experience.
 
+--> Content Calendar: Implement a visual calendar where users can schedule their generated content for future posting.
+
+--> Usage-Based Limits: Introduce a credit system to manage API costs and limit the number of generations per user plan.

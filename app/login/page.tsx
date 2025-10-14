@@ -1,16 +1,20 @@
 'use client';
+
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-const supabase = createPagesBrowserClient();
-
 export default function LoginPage() {
   const router = useRouter();
   const [view, setView] = useState<'sign_in' | 'sign_up'>('sign_in');
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   // Redirect to dashboard on login
   useEffect(() => {
@@ -23,7 +27,7 @@ export default function LoginPage() {
       }
     });
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, [router, supabase]);
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black p-4">
@@ -153,17 +157,17 @@ export default function LoginPage() {
               localization={{
                 variables: {
                   sign_in: {
-                    link_text: '', 
+                    link_text: '',
                     email_label: 'Email Address',
                     password_label: 'Password',
                   },
                   sign_up: {
-                    link_text: '', 
+                    link_text: '',
                     email_label: 'Email Address',
                     password_label: 'Password',
                   },
                   magic_link: { link_text: '' },
-                  forgotten_password: { link_text: '' }, 
+                  forgotten_password: { link_text: '' },
                 },
               }}
             />
@@ -227,34 +231,34 @@ export default function LoginPage() {
           border: none !important;
           font-weight: 600 !important;
         }
-        
+
         .supabase-auth-custom button[type='submit']:hover {
           background: linear-gradient(to right, rgb(234 88 12), rgb(219 39 119)) !important;
           box-shadow: 0 20px 25px -5px rgba(249, 115, 22, 0.7) !important;
           transform: translateY(-2px);
         }
-        
+
         .supabase-auth-custom button[type='submit']:focus {
           box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.5), 0 10px 15px -3px rgba(249, 115, 22, 0.5) !important;
         }
-        
+
         /* Input fields */
         .supabase-auth-custom input:focus {
           box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1) !important;
           background: rgba(255, 255, 255, 0.1) !important;
         }
-        
+
         /* Label styling */
         .supabase-auth-custom label {
           margin-left: 4px !important;
           color: rgb(209 213 219) !important;
         }
-        
+
         /* Hide auth links */
         .supabase-auth-custom a {
           display: none !important;
         }
-        
+
         /* Error messages */
         .supabase-auth-custom [role='alert'] {
           background: rgba(239, 68, 68, 0.1) !important;
@@ -263,7 +267,7 @@ export default function LoginPage() {
           padding: 12px !important;
           color: rgb(252 165 165) !important;
         }
-        
+
         /* Success messages */
         .supabase-auth-custom [role='status'] {
           background: rgba(34, 197, 94, 0.1) !important;

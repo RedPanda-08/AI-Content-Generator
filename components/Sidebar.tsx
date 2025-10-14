@@ -1,9 +1,10 @@
 'use client';
+
 import Link from 'next/link';
 import { LayoutDashboard, Settings, Bot, History, Menu, X, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 
 const navItems = [
   { name: 'Generator', href: '/dashboard', icon: Bot },
@@ -17,9 +18,12 @@ export default function Sidebar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const supabase = createPagesBrowserClient();
 
-  // This useEffect hook fetches the user's data when the component loads
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
   useEffect(() => {
     const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -33,6 +37,8 @@ export default function Sidebar() {
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     router.push('/login');
+    // This line is crucial for security. It forces a server refresh.
+    router.refresh();
   };
 
   return (
