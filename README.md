@@ -1,9 +1,3 @@
-Of course. Now that you've successfully integrated the live OpenAI API, your README file needs an update to reflect the project's new capabilities.
-
-Here is the revised, fully updated README file.
-
------
-
 # 🤖 ContentAI: AI-Powered Content Command Center
 
 ContentAI is a full-stack, AI-powered SaaS application designed to help social media managers and businesses streamline their content creation workflow. It acts as a strategic assistant that learns a user's unique brand voice and generates tailored, high-quality posts for various social media platforms.
