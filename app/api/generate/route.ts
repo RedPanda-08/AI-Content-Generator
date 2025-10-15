@@ -1,13 +1,14 @@
 import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
 console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? 'Loaded' : 'Missing');
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const { prompt } = await req.json();
   const supabase = await createClient();
 
@@ -27,7 +28,6 @@ export async function POST(req: Request) {
   try {
     const { brand_name, brand_tone, brand_keywords } = user.user_metadata ?? {};
 
-    // This is basic prompt engineering: we instruct the AI on how to behave.
     const systemPrompt = `You are an expert content creation assistant for a brand named "${
       brand_name || 'our brand'
     }". Your writing tone must be ${
@@ -36,17 +36,17 @@ export async function POST(req: Request) {
       brand_keywords || 'none'
     }. Respond directly to the user's prompt without preamble.`;
 
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o', // A powerful and cost-effective model
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt },
       ],
-      temperature: 0.7, // A good balance between creativity and predictability
-      max_tokens: 500, // Limits the length of the response
+      temperature: 0.7,
+      max_tokens: 500,
     });
 
-    const aiContent = response.choices[0].message.content;
+    const aiContent = completion.choices?.[0]?.message?.content;
 
     if (!aiContent) {
       return NextResponse.json(
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 
     const { error: dbError } = await supabase.from('generations').insert({
       user_id: user.id,
-      prompt: prompt,
+      prompt,
       content: aiContent,
     });
 
