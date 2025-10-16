@@ -19,18 +19,29 @@ export async function GET(request: NextRequest) {
             return cookieStore.get(name)?.value;
           },
           set(name: string, value: string, options: CookieOptions) {
-            cookieStore.set({ name, value, ...options });
+            try {
+            
+              cookieStore.set({ name, value, ...options });
+            } catch (error) {
+              console.error('Cookie set error:', error);
+            }
           },
           remove(name: string, options: CookieOptions) {
-            cookieStore.set({ name, value: '', ...options });
+            try {
+             
+              cookieStore.set({ name, value: '', ...options });
+            } catch (error) {
+              console.error('Cookie remove error:', error);
+            }
           },
         },
       }
     );
 
+    // Exchange the auth code for a Supabase session
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  // Redirect after sign-in
+  // Redirect user after successful login
   return NextResponse.redirect(`${requestUrl.origin}/auth/confirmed`);
 }
