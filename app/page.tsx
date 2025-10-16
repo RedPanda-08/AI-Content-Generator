@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Bot, Zap, BarChart2, CheckCircle, Lightbulb, TrendingUp, Star, Sparkles, ArrowRight, Users, Clock, Target } from 'lucide-react';
+import { Bot, Zap, BarChart2, Lightbulb, TrendingUp, Star, Sparkles, ArrowRight, Users, Clock, Target } from 'lucide-react';
 
 export default function HomePage() {
   return (

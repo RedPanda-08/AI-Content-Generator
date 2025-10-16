@@ -1,5 +1,4 @@
 'use client';
-
 import Link from 'next/link';
 import { LayoutDashboard, Settings, Bot, History, Menu, X, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';

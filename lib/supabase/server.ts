@@ -15,6 +15,7 @@ export async function createClient() {
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options })
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (error) {
         
           }
@@ -22,6 +23,7 @@ export async function createClient() {
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options })
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
           } catch (error) {
           
           }
