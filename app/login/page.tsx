@@ -8,17 +8,13 @@ import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
-  // This state will control whether the form shows "Sign In" or "Sign Up"
   const [view, setView] = useState<'sign_in' | 'sign_up'>('sign_in');
 
-  // Create the Supabase client inside the component for reliability
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // This effect listens for a successful sign-in and then performs a full page redirect.
-  // This is the most reliable way to handle redirects in a server environment like Vercel.
   useEffect(() => {
     const {
       data: { subscription },
