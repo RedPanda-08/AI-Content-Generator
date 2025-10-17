@@ -1,5 +1,4 @@
 'use client';
-
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { createBrowserClient } from '@supabase/ssr';
@@ -9,21 +8,23 @@ import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
+  // This state will control whether the form shows "Sign In" or "Sign Up"
   const [view, setView] = useState<'sign_in' | 'sign_up'>('sign_in');
 
+  // Create the Supabase client inside the component for reliability
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // Redirect to dashboard on login
+  // This effect listens for a successful sign-in and then performs a full page redirect.
+  // This is the most reliable way to handle redirects in a server environment like Vercel.
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN') {
-        router.push('/dashboard');
-        router.refresh();
+        window.location.href = '/dashboard';
       }
     });
     return () => subscription.unsubscribe();
@@ -31,7 +32,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black p-4">
-      {/* Glowing Background Blobs */}
+      {/* Your beautiful background and card layout */}
       <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-500/30 rounded-full blur-3xl animate-pulse"></div>
       <div
         className="absolute top-60 -left-40 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl animate-pulse"
@@ -42,10 +43,9 @@ export default function LoginPage() {
         style={{ animationDelay: '2s' }}
       ></div>
 
-      {/* Auth Card */}
       <div className="w-full max-w-md relative z-10">
         <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/10 p-8 space-y-6">
-          {/* Header */}
+          {/* Header that dynamically changes */}
           <div className="text-center space-y-2">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl mb-2 shadow-lg shadow-orange-500/50">
               {view === 'sign_in' ? (
@@ -79,7 +79,7 @@ export default function LoginPage() {
               )}
             </div>
             <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-pink-500 bg-clip-text text-transparent">
-              {view === 'sign_in' ? 'Welcome Back' : 'Create Account'}
+              {view === 'sign_in' ? 'Welcome Back' : 'Create an Account'}
             </h2>
             <p className="text-gray-400 text-sm">
               {view === 'sign_in'
@@ -119,30 +119,10 @@ export default function LoginPage() {
                       anchorTextColor: 'rgb(251 146 60)',
                       anchorTextHoverColor: 'rgb(236 72 153)',
                     },
-                    space: {
-                      inputPadding: '14px 16px',
-                      buttonPadding: '14px 16px',
-                    },
-                    fontSizes: {
-                      baseBodySize: '14px',
-                      baseInputSize: '15px',
-                      baseLabelSize: '14px',
-                      baseButtonSize: '15px',
-                    },
-                    fonts: {
-                      bodyFontFamily: 'inherit',
-                      buttonFontFamily: 'inherit',
-                      inputFontFamily: 'inherit',
-                      labelFontFamily: 'inherit',
-                    },
                     radii: {
                       borderRadiusButton: '12px',
                       buttonBorderRadius: '12px',
                       inputBorderRadius: '12px',
-                    },
-                    borderWidths: {
-                      buttonBorderWidth: '0px',
-                      inputBorderWidth: '2px',
                     },
                   },
                 },
@@ -156,16 +136,8 @@ export default function LoginPage() {
               }}
               localization={{
                 variables: {
-                  sign_in: {
-                    link_text: '',
-                    email_label: 'Email Address',
-                    password_label: 'Password',
-                  },
-                  sign_up: {
-                    link_text: '',
-                    email_label: 'Email Address',
-                    password_label: 'Password',
-                  },
+                  sign_in: { link_text: '' },
+                  sign_up: { link_text: '' },
                   magic_link: { link_text: '' },
                   forgotten_password: { link_text: '' },
                 },
@@ -173,6 +145,7 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* Custom Toggle Links */}
           <div className="text-center pt-4 border-t border-white/10">
             {view === 'sign_in' ? (
               <p className="text-gray-400 text-sm">
@@ -238,45 +211,18 @@ export default function LoginPage() {
           transform: translateY(-2px);
         }
 
-        .supabase-auth-custom button[type='submit']:focus {
-          box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.5), 0 10px 15px -3px rgba(249, 115, 22, 0.5) !important;
-        }
-
         /* Input fields */
         .supabase-auth-custom input:focus {
           box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1) !important;
           background: rgba(255, 255, 255, 0.1) !important;
         }
 
-        /* Label styling */
-        .supabase-auth-custom label {
-          margin-left: 4px !important;
-          color: rgb(209 213 219) !important;
-        }
-
-        /* Hide auth links */
+        /* Hide the default auth links so we can use our custom ones */
         .supabase-auth-custom a {
           display: none !important;
-        }
-
-        /* Error messages */
-        .supabase-auth-custom [role='alert'] {
-          background: rgba(239, 68, 68, 0.1) !important;
-          border: 1px solid rgba(239, 68, 68, 0.5) !important;
-          border-radius: 12px !important;
-          padding: 12px !important;
-          color: rgb(252 165 165) !important;
-        }
-
-        /* Success messages */
-        .supabase-auth-custom [role='status'] {
-          background: rgba(34, 197, 94, 0.1) !important;
-          border: 1px solid rgba(34, 197, 94, 0.5) !important;
-          border-radius: 12px !important;
-          padding: 12px !important;
-          color: rgb(134 239 172) !important;
         }
       `}</style>
     </div>
   );
 }
+
