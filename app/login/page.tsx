@@ -120,10 +120,14 @@ export default function LoginPage() {
                       buttonBorderRadius: '12px',
                       inputBorderRadius: '12px',
                     },
+                    space: {
+                      inputPadding: '14px 20px',
+                      buttonPadding: '14px 20px', 
+                    }
                   },
                 },
                 className: {
-                  container: 'space-y-5',
+                  container: 'space-y-4',
                   label: 'font-semibold !ml-1',
                   button: 'font-semibold !transition-all !duration-200',
                   input: '!transition-all !duration-200',
