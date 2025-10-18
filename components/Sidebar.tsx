@@ -88,7 +88,7 @@ export default function Sidebar() {
                   <span className={`font-medium whitespace-nowrap transition-opacity ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>{item.name}</span>
                 </Link>
                 {isCollapsed && (
-                  <span className="absolute left-full ml-4 px-2 py-1 text-sm bg-gray-800 text-white rounded-md invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-200 z-50">
+                  <span className="absolute left-full ml-4  px-4 py-1 text-sm bg-gray-800 text-white rounded-md invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-200 z-50 whitespace-nowrap">
                     {item.name}
                   </span>
                 )}
