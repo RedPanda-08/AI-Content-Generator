@@ -71,7 +71,6 @@ export default function SettingsPage() {
             </h1>
 
             <div className="flex flex-col gap-5">
-            {/* Brand Name */}
             <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-300">
                 Brand Name
@@ -117,7 +116,7 @@ export default function SettingsPage() {
             <button
                 onClick={handleSave}
                 disabled={isSaving || !brandName.trim() || !brandTone.trim() || !brandKeywords.trim()}
-                className={`flex items-center justify-center gap-2 px-6 py-3 mt-4 rounded-xl font-semibold transition-all transform w-full
+                className={`flex items-center justify-center gap-2 px-6 py-3 mt-4 rounded-xl font-semibold transition-all transform w-full cursor-pointer text-white
                 ${
                     isSaving || !brandName.trim() || !brandTone.trim() || !brandKeywords.trim()
                     ? 'bg-gray-700 cursor-not-allowed'
@@ -137,7 +136,7 @@ export default function SettingsPage() {
             {/* Message */}
             {message && (
                 <p
-                className={`text-sm mt-4 text-center font-medium ${
+                className={`text-sm mt-4 text-center font-medium  ${
                     message.includes('✅')
                     ? 'text-green-400'
                     : message.includes('⚠️')
