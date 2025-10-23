@@ -16,7 +16,7 @@ export default function SettingsPage() {
     const fetchProfile = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { brand_name, brand_tone, brand_keywords } = user.user_metadata;
+        const { brand_name, brand_tone, brand_keywords } = user.user_metadata ?? {};
         setBrandName(brand_name || '');
         setBrandTone(brand_tone || '');
         setBrandKeywords(brand_keywords || '');
@@ -26,33 +26,46 @@ export default function SettingsPage() {
     fetchProfile();
   }, []); 
 
-  const handleSave = async () => {
+  // --- UPDATED: Extracted save logic into a reusable function ---
+  const performSave = async (name: string, tone: string, keywords: string) => {
     setMessage('');
-
-    if (!brandName.trim() || !brandTone.trim() || !brandKeywords.trim()) {
-      setMessage(' Please fill in all fields before saving.');
-      return;
-    }
-    
     setIsSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { error } = await supabase.auth.updateUser({
         data: { 
-          brand_name: brandName, 
-          brand_tone: brandTone, 
-          brand_keywords: brandKeywords 
+          brand_name: name, 
+          brand_tone: tone, 
+          brand_keywords: keywords 
         }
       });
       if (error) {
-        setMessage(` Error: ${error.message}`);
+        setMessage(`❌ Error: ${error.message}`);
       } else {
-        setMessage(' Settings saved successfully!');
+        setMessage('✅ Settings saved successfully!');
       }
     } else {
-       setMessage(' You must be logged in to save settings.');
+        setMessage('❌ You must be logged in to save settings.'); 
     }
     setIsSaving(false);
+  };
+
+  // --- Main Save Handler (Keeps Validation) ---
+  const handleSave = async () => {
+    // Keep the validation for the main save button
+    if (!brandName.trim() || !brandTone.trim() || !brandKeywords.trim()) {
+      setMessage('⚠️ Please fill in all fields before saving.');
+      return;
+    }
+    await performSave(brandName, brandTone, brandKeywords);
+  };
+
+  const handleClear = async () => {
+    setBrandName('');
+    setBrandTone('');
+    setBrandKeywords('');
+    await performSave('', '', ''); 
+    setMessage(' Brand Voice settings cleared successfully!'); 
   };
 
   if (loading) {
@@ -76,70 +89,79 @@ export default function SettingsPage() {
                 Brand Name
                 </label>
                 <input
-                type="text"
-                value={brandName}
-                onChange={(e) => setBrandName(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-orange-500 focus:outline-none"
-                placeholder="Enter your brand name"
+                  type="text"
+                  value={brandName}
+                  onChange={(e) => setBrandName(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                  placeholder="Enter your brand name" 
                 />
             </div>
-
-            {/* Brand Tone */}
             <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-300">
                 Brand Tone
                 </label>
                 <input
-                type="text"
-                value={brandTone}
-                onChange={(e) => setBrandTone(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-pink-500 focus:outline-none"
-                placeholder="e.g., Professional, Friendly, Casual"
+                  type="text"
+                  value={brandTone}
+                  onChange={(e) => setBrandTone(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-pink-500 focus:outline-none"
+                  placeholder="e.g., Professional, Friendly, Casual"
                 />
             </div>
-
-            {/* Brand Keywords */}
             <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-300">
                 Brand Keywords
                 </label>
                 <input
-                type="text"
-                value={brandKeywords}
-                onChange={(e) => setBrandKeywords(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-purple-500 focus:outline-none"
-                placeholder="e.g., innovation, trust, speed"
+                  type="text"
+                  value={brandKeywords}
+                  onChange={(e) => setBrandKeywords(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                  placeholder="e.g., innovation, trust, speed (comma separated)"
                 />
             </div>
 
-            {/* Save Button */}
-            <button
-                onClick={handleSave}
-                disabled={isSaving || !brandName.trim() || !brandTone.trim() || !brandKeywords.trim()}
-                className={`flex items-center justify-center gap-2 px-6 py-3 mt-4 rounded-xl font-semibold transition-all transform w-full cursor-pointer text-white
-                ${
-                    isSaving || !brandName.trim() || !brandTone.trim() || !brandKeywords.trim()
-                    ? 'bg-gray-700 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 hover:-translate-y-0.5'
-                } shadow-lg`}
-            >
-                {isSaving ? (
-                    <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Saving...
-                    </>
-                ) : (
-                    'Save Settings'
-                )}
-            </button>
+            {/* --- UPDATED: Button Row --- */}
+            <div className="flex flex-col sm:flex-row gap-4 mt-4">
+              {/* Save Button */}
+              <button
+                  onClick={handleSave}
+                  disabled={isSaving || !brandName.trim() || !brandTone.trim() || !brandKeywords.trim()}
+                  className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform w-full cursor-pointer text-white
+                  ${
+                      isSaving || !brandName.trim() || !brandTone.trim() || !brandKeywords.trim()
+                      ? 'bg-gray-700 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 hover:-translate-y-0.5'
+                  } shadow-lg`}
+              >
+                  {isSaving ? (
+                      <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Saving...
+                      </>
+                  ) : (
+                      'Save Settings'
+                  )}
+              </button>
+              {/* NEW: Clear Button */}
+              <button
+                  onClick={handleClear}
+                  disabled={isSaving}
+                  className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform w-full cursor-pointer text-gray-300 bg-gray-700/50 hover:bg-gray-700 border border-gray-600 hover:-translate-y-0.5
+                  ${isSaving ? 'cursor-not-allowed opacity-50' : ''} shadow-lg`}
+              >
+                  {isSaving ? '...' : 'Clear Settings'}
+              </button>
+            </div>
+
 
             {/* Message */}
             {message && (
                 <p
-                className={`text-sm mt-4 text-center font-medium  ${
+                className={`text-sm mt-4 text-center font-medium ${
                     message.includes('✅')
                     ? 'text-green-400'
-                    : message.includes('⚠️')
+                    : message.includes('⚠️') 
                     ? 'text-yellow-400'
                     : 'text-red-400'
                 }`}

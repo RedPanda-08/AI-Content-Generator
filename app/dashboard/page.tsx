@@ -103,32 +103,32 @@ export default function GeneratorPage() {
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12">
                 <div 
                   onClick={() => handleCardClick('Write a witty tweet about the struggles of debugging code')} 
-                  className="group p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-orange-500/50 rounded-2xl transition-all cursor-pointer text-left transform hover:scale-105 duration-200"
+                  className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-orange-500/50 rounded-2xl transition-all cursor-pointer text-left"
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-orange-500/20 rounded-lg group-hover:bg-orange-500/30 transition-colors">
+                    <div className="p-2 bg-orange-500/20 rounded-lg">
                       <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-gray-200 group-hover:text-white transition-colors">Witty Tweet</h3>
+                    <h3 className="font-semibold text-gray-200">Witty Tweet</h3>
                   </div>
-                  <p className="text-sm text-gray-500 group-hover:text-gray-400 transition-colors">Create a humorous tweet about debugging struggles</p>
+                  <p className="text-sm text-gray-500">Create a humorous tweet about debugging struggles</p>
                 </div>
                 
                 <div 
                   onClick={() => handleCardClick('Create an engaging Instagram caption for a picture of a sunset')} 
-                  className="group p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pink-500/50 rounded-2xl transition-all cursor-pointer text-left transform hover:scale-105 duration-200"
+                  className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pink-500/50 rounded-2xl transition-all cursor-pointer text-left"
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-pink-500/20 rounded-lg group-hover:bg-pink-500/30 transition-colors">
+                    <div className="p-2 bg-pink-500/20 rounded-lg">
                       <svg className="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-gray-200 group-hover:text-white transition-colors">Instagram Caption</h3>
+                    <h3 className="font-semibold text-gray-200">Instagram Caption</h3>
                   </div>
-                  <p className="text-sm text-gray-500 group-hover:text-gray-400 transition-colors">Craft an engaging caption for a sunset photo</p>
+                  <p className="text-sm text-gray-500">Craft an engaging caption for a sunset photo</p>
                 </div>
              </div>
            </div>
@@ -151,9 +151,21 @@ export default function GeneratorPage() {
               </div>
               
               {isGenerating ? (
-                <div className="flex items-center text-gray-400 mt-1">
-                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                  <span>Generating your content...</span>
+                <div className="flex-1">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <Loader2 className="w-5 h-5 animate-spin text-orange-400" />
+                        <div className="absolute inset-0 w-5 h-5 rounded-full bg-orange-400/20 animate-ping"></div>
+                      </div>
+                      <span className="text-gray-400 text-sm">Generating your content...</span>
+                    </div>
+                    <div className="space-y-2.5 mt-4">
+                      <div className="h-3 bg-gradient-to-r from-white/10 to-transparent rounded animate-pulse"></div>
+                      <div className="h-3 bg-gradient-to-r from-white/10 to-transparent rounded animate-pulse" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="h-3 bg-gradient-to-r from-white/10 to-transparent rounded w-3/4 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
                 </div>
               ) : error ? (
                 <div className="flex-1">
