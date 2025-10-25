@@ -87,6 +87,60 @@ export default function GeneratorPage() {
     }
   };
 
+  const formatAnalysis = (text: string) => {
+    if (!text) return '';
+    
+    // Split into lines and process
+    const lines = text.split('\n');
+    let formatted = '';
+    let inList = false;
+    
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      
+      if (!trimmedLine) {
+        if (inList) {
+          formatted += '</ul>';
+          inList = false;
+        }
+        formatted += '<div class="h-3"></div>';
+        return;
+      }
+      
+      // Headers (lines ending with :)
+      if (trimmedLine.endsWith(':') && !trimmedLine.startsWith('-')) {
+        if (inList) {
+          formatted += '</ul>';
+          inList = false;
+        }
+        formatted += `<h5 class="text-blue-200 font-semibold text-base mb-2 mt-4">${trimmedLine.replace(/\*\*/g, '')}</h5>`;
+      }
+      // List items
+      else if (trimmedLine.startsWith('-') || trimmedLine.startsWith('•')) {
+        if (!inList) {
+          formatted += '<ul class="space-y-2 ml-1">';
+          inList = true;
+        }
+        const content = trimmedLine.substring(1).trim();
+        formatted += `<li class="flex gap-2 text-gray-300 leading-relaxed"><span class="text-blue-400 mt-1 flex-shrink-0">•</span><span>${content.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-medium">$1</strong>')}</span></li>`;
+      }
+      // Regular paragraphs
+      else {
+        if (inList) {
+          formatted += '</ul>';
+          inList = false;
+        }
+        formatted += `<p class="text-gray-300 leading-relaxed mb-3">${trimmedLine.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-medium">$1</strong>')}</p>`;
+      }
+    });
+    
+    if (inList) {
+      formatted += '</ul>';
+    }
+    
+    return formatted;
+  };
+
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto px-4 py-6">
       <div className="flex-grow overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
@@ -202,23 +256,26 @@ export default function GeneratorPage() {
                   
                   {/* Analysis Section */}
                   {(isAnalyzing || analysis) && (
-                    <div className="mt-4 p-6 bg-blue-500/10 border border-blue-500/30 rounded-2xl">
-                      <div className="flex items-center gap-2 mb-3">
-                        <BarChart2 size={20} className="text-blue-400" />
-                        <h4 className="font-semibold text-blue-300">Strategic Insights</h4>
+                    <div className="mt-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-2xl p-6 shadow-lg">
+                      <div className="flex items-center gap-3 mb-5 pb-4 border-b border-blue-500/20">
+                        <div className="p-2 bg-blue-500/20 rounded-lg">
+                          <BarChart2 size={20} className="text-blue-400" />
+                        </div>
+                        <h4 className="font-semibold text-blue-200 text-lg">Strategic Insights</h4>
                       </div>
                       {isAnalyzing ? (
-                        <div className="flex items-center text-blue-300/80">
-                          <Loader2 size={16} className="animate-spin mr-2" /> 
-                          Analyzing your content...
+                        <div className="flex flex-col items-center justify-center py-8 gap-4">
+                          <div className="relative">
+                            <Loader2 size={32} className="animate-spin text-blue-400" />
+                            <div className="absolute inset-0 w-8 h-8 rounded-full bg-blue-400/20 animate-ping"></div>
+                          </div>
+                          <span className="text-blue-300/80 text-sm">Analyzing your content...</span>
                         </div>
                       ) : (
                         <div 
-                          className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap" 
+                          className="text-sm prose prose-invert max-w-none"
                           dangerouslySetInnerHTML={{ 
-                            __html: (analysis || '')
-                              ?.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
-                              .replace(/- /g, '• ') 
+                            __html: formatAnalysis(analysis || '')
                           }} 
                         />
                       )}
