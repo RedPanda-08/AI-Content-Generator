@@ -28,8 +28,6 @@ export function SupabaseProvider({ children }) {
       } else if (data?.session) {
         console.log("Guest login successful");
         setSession(data.session);
-        // Force refresh so API routes/Middleware pick up the new cookie immediately
-        window.location.reload(); 
       }
     } catch (err) {
       console.error("Error creating guest:", err);
