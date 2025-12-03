@@ -1,9 +1,33 @@
 'use client';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useSupabase } from '../components/SupabaseProvider';
 import { Bot, Zap, BarChart2, Lightbulb, TrendingUp, Star, Sparkles, ArrowRight, Users, Clock, Target, Loader2, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+// --- Animation Variants ---
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.2
+    }
+  }
+};
+
+const fadeInScale = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
+};
 
 interface SupabaseContextType {
   session: { user?: { id: string; email?: string } } | null;
@@ -73,7 +97,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black via-neutral-950 to-black text-white overflow-hidden">
+    <main className="min-h-screen bg-gradient-to-b from-black via-neutral-950 to-black text-white overflow-hidden scroll-smooth">
       
       {/* Enhanced gradient background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -82,20 +106,37 @@ export default function HomePage() {
         <div className="absolute bottom-20 right-1/3 w-[400px] h-[400px] bg-red-500/10 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      {/* Header  */}
+      {/* Header */}
       <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-xl bg-black/80 border-b border-white/[0.08]">
         <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
-          <div className="flex items-center gap-3">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }} 
+            animate={{ opacity: 1, x: 0 }} 
+            transition={{ duration: 0.5 }}
+            className="flex items-center gap-3"
+          >
             <div className="w-10 h-10 bg-gradient-to-br from-orange-500 via-orange-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
               <Bot className="w-6 h-6 text-white" />
             </div>
             <span className="font-bold text-xl">ContentAI</span>
-          </div>
-          <nav className="hidden md:flex items-center gap-8">
+          </motion.div>
+
+          <motion.nav 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="hidden md:flex items-center gap-8"
+          >
             <a href="#features" className="text-gray-400 hover:text-white transition-colors text-sm font-medium">Features</a>
             <a href="#how-it-works" className="text-gray-400 hover:text-white transition-colors text-sm font-medium">How it Works</a>
-          </nav>
-          <div className="flex items-center gap-3">
+          </motion.nav>
+
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }} 
+            animate={{ opacity: 1, x: 0 }} 
+            transition={{ duration: 0.5 }}
+            className="flex items-center gap-3"
+          >
             <Link href="/login" className="text-gray-400 hover:text-white font-medium transition-colors text-sm px-4 py-2">Log In</Link>
             <button 
               onClick={handleStartTrial}
@@ -103,37 +144,42 @@ export default function HomePage() {
             >
               Get Started
             </button>
-          </div>
+          </motion.div>
         </div>
       </header>
       
       {/* Hero Section */}
       <section className="relative flex flex-col items-center justify-center min-h-screen px-4 pt-24 pb-16">
-        <div className="relative z-10 space-y-8 max-w-5xl mx-auto text-center">
+        <motion.div 
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+          className="relative z-10 space-y-8 max-w-5xl mx-auto text-center"
+        >
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/[0.08] hover:border-white/20 transition-all">
+          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md rounded-full border border-white/[0.08] hover:border-white/20 transition-all">
             <Sparkles className="w-4 h-4 text-orange-400" />
             <span className="text-sm font-medium text-gray-300">AI-Powered Content Creation</span>
             <div className="px-2.5 py-0.5 bg-gradient-to-r from-orange-500/20 to-pink-500/20 rounded-full border border-orange-500/30">
               <span className="text-xs font-semibold text-orange-400">NEW</span>
             </div>
-          </div>
+          </motion.div>
 
           {/* Main Heading */}
-          <h1 className="text-6xl md:text-8xl font-bold leading-[1.1] tracking-tight">
+          <motion.h1 variants={fadeInUp} className="text-6xl md:text-8xl font-bold leading-[1.1] tracking-tight">
             <span className="block">Create Content</span>
             <span className="block bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 bg-clip-text text-transparent animate-gradient">
               That Converts
             </span>
-          </h1>
+          </motion.h1>
 
           {/* Subheading */}
-          <p className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed font-light">
+          <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed font-light">
             Transform your social media strategy with AI that understands your brand voice. Create engaging content in seconds, not hours.
-          </p>
+          </motion.p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row justify-center gap-4 pt-8">
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row justify-center gap-4 pt-8">
             <button 
               onClick={handleStartTrial}
               disabled={status !== 'idle'}
@@ -147,10 +193,10 @@ export default function HomePage() {
             >
               Watch Demo
             </Link>
-          </div>
+          </motion.div>
 
           {/* Social Proof */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-12 text-sm text-gray-400">
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-12 text-sm text-gray-400">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center">
                 <Users className="w-4 h-4 text-white" />
@@ -163,34 +209,58 @@ export default function HomePage() {
               ))}
               <span className="ml-2 font-medium">4.9/5 rating</span>
             </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Scroll Indicator */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5, duration: 1 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce"
+        >
+          <div className="w-6 h-10 border-2 border-white/20 rounded-full flex justify-center p-2">
+            <div className="w-1.5 h-3 bg-white/40 rounded-full"></div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Stats Section */}
       <section className="py-24 border-y border-white/[0.08] bg-gradient-to-b from-white/[0.02] to-transparent backdrop-blur-sm relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px]"></div>
         <div className="max-w-6xl mx-auto px-4 relative">
-          <div className="grid md:grid-cols-4 gap-12 text-center">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerContainer}
+            className="grid md:grid-cols-4 gap-12 text-center"
+          >
             {[
               { value: '1', label: 'Active Users' },
               { value: '1', label: 'Posts Generated' },
               { value: '95%', label: 'Time Saved' },
               { value: '4.9★', label: 'User Rating' }
             ].map((stat, i) => (
-              <div key={i} className="group">
-                <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform">{stat.value}</div>
+              <motion.div key={i} variants={fadeInUp} className="group">
+                <div className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 bg-clip-text text-transparent mb-3 group-hover:scale-110 transition-transform duration-300 ease-out">{stat.value}</div>
                 <div className="text-gray-400 font-medium">{stat.label}</div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Features Section */}
       <section id="features" className="py-32 relative">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-24">
+          <motion.div 
+             initial="hidden"
+             whileInView="visible"
+             viewport={{ once: true }}
+             variants={fadeInUp}
+             className="text-center mb-24"
+          >
             <h2 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
               Everything you need to
               <span className="block bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 bg-clip-text text-transparent mt-2">
@@ -200,9 +270,15 @@ export default function HomePage() {
             <p className="text-xl text-gray-400 max-w-2xl mx-auto font-light">
               Powerful AI tools designed to streamline your content creation workflow
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={staggerContainer}
+            className="grid md:grid-cols-3 gap-6"
+          >
             {[
               { icon: Zap, title: 'Lightning Fast Generation', desc: 'Create professional content in seconds with our advanced AI engine', color: 'from-orange-500 to-yellow-500' },
               { icon: Target, title: 'Brand Voice Matching', desc: 'AI learns your unique voice and maintains consistency across all content', color: 'from-pink-500 to-red-500' },
@@ -211,15 +287,15 @@ export default function HomePage() {
               { icon: Sparkles, title: 'Multi-Platform Support', desc: 'Optimize content for Instagram, Twitter, LinkedIn, and more', color: 'from-green-500 to-emerald-500' },
               { icon: TrendingUp, title: 'Trend Analysis', desc: 'Stay ahead with real-time trending topic recommendations', color: 'from-red-500 to-orange-500' }
             ].map((feature, i) => (
-              <div key={i} className="group p-8 bg-white/[0.02] hover:bg-white/[0.05] backdrop-blur-sm rounded-2xl border border-white/[0.08] hover:border-white/20 transition-all duration-300 hover:transform hover:scale-[1.02] hover:shadow-2xl hover:shadow-orange-500/10">
+              <motion.div key={i} variants={fadeInScale} className="group p-8 bg-white/[0.02] hover:bg-white/[0.05] backdrop-blur-sm rounded-2xl border border-white/[0.08] hover:border-white/20 transition-all duration-300 hover:transform hover:scale-[1.02] hover:shadow-2xl hover:shadow-orange-500/10">
                 <div className={`w-14 h-14 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-6 shadow-lg group-hover:shadow-2xl group-hover:scale-110 transition-all`}>
                   <feature.icon className="w-7 h-7 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold mb-3 group-hover:text-white transition-colors">{feature.title}</h3>
                 <p className="text-gray-400 leading-relaxed font-light">{feature.desc}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -227,15 +303,27 @@ export default function HomePage() {
       <section id="how-it-works" className="py-32 bg-gradient-to-b from-white/[0.02] to-transparent backdrop-blur-sm border-y border-white/[0.08] relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px]"></div>
         <div className="max-w-6xl mx-auto px-4 relative">
-          <div className="text-center mb-24">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={fadeInUp}
+            className="text-center mb-24"
+          >
             <h2 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
               Get started in
               <span className="bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 bg-clip-text text-transparent"> minutes</span>
             </h2>
             <p className="text-xl text-gray-400 font-light">Three simple steps to transform your content game</p>
-          </div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 relative">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerContainer}
+            className="grid md:grid-cols-3 gap-8 relative"
+          >
             {/* Connection Lines */}
             <div className="hidden md:block absolute top-16 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
             
@@ -244,42 +332,50 @@ export default function HomePage() {
               { num: '02', title: 'Generate Content', desc: 'Enter a topic and watch AI create engaging posts tailored to your audience', icon: Sparkles },
               { num: '03', title: 'Publish & Analyze', desc: 'Schedule posts and track performance with detailed analytics', icon: TrendingUp }
             ].map((step, i) => (
-              <div key={i} className="relative">
+              <motion.div key={i} variants={fadeInUp} className="relative">
                 <div className="bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-md p-8 rounded-2xl border border-white/[0.08] hover:border-orange-500/30 transition-all duration-300 h-full hover:shadow-2xl hover:shadow-orange-500/10 group">
-                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl shadow-orange-500/30 relative z-10 group-hover:scale-110 transition-transform">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6 shadow-2xl shadow-orange-500/30 relative z-10 group-hover:scale-110 transition-transform duration-300">
                     <step.icon className="w-8 h-8 text-white" />
                   </div>
                   <div className="text-7xl font-bold text-white/[0.03] absolute top-4 right-8 select-none">{step.num}</div>
                   <h3 className="text-2xl font-bold mb-4 group-hover:text-white transition-colors">{step.title}</h3>
                   <p className="text-gray-400 leading-relaxed font-light">{step.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Final CTA Section */}
       <section className="py-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-pink-500/10 to-red-500/10 blur-3xl"></div>
-        <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <h2 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+        <motion.div 
+           initial="hidden"
+           whileInView="visible"
+           viewport={{ once: true }}
+           variants={staggerContainer}
+           className="max-w-4xl mx-auto px-4 text-center relative z-10"
+        >
+          <motion.h2 variants={fadeInUp} className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
             Ready to create
-            <span className="block bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 bg-clip-text text-transparent mt-2">
+            <span className="block bg-gradient-to-r from-orange-400 to-pink-500 bg-clip-text text-transparent mt-2">
               amazing content?
             </span>
-          </h2>
-          <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
+          </motion.h2>
+          <motion.p variants={fadeInUp} className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
             Join thousands of creators who are already using AI to transform their social media presence
-          </p>
-          <button 
-            onClick={handleStartTrial}
-            disabled={status !== 'idle'}
-            className="group inline-flex cursor-pointer items-center gap-3 px-12 py-6 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 rounded-2xl font-bold text-xl shadow-2xl shadow-orange-500/40 hover:shadow-orange-500/60 transform hover:-translate-y-1 transition-all duration-200 disabled:opacity-80 disabled:cursor-wait"
-          >
-            {renderButtonContent('Start Creating for Free')}
-          </button>
-          <div className="flex items-center justify-center gap-6 mt-8 text-sm text-gray-500">
+          </motion.p>
+          <motion.div variants={fadeInUp}>
+            <button 
+              onClick={handleStartTrial}
+              disabled={status !== 'idle'}
+              className="group inline-flex cursor-pointer items-center gap-3 px-12 py-6 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 rounded-2xl font-bold text-xl shadow-2xl shadow-orange-500/40 hover:shadow-orange-500/60 transform hover:-translate-y-1 transition-all duration-200 disabled:opacity-80 disabled:cursor-wait"
+            >
+              {renderButtonContent('Start Creating for Free')}
+            </button>
+          </motion.div>
+          <motion.div variants={fadeInUp} className="flex items-center justify-center gap-6 mt-8 text-sm text-gray-500">
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-400" />
               <span>No credit card required</span>
@@ -292,15 +388,15 @@ export default function HomePage() {
               <Check className="w-4 h-4 text-green-400" />
               <span>Cancel anytime</span>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
       
       {/* Footer */}
       <footer className="border-t border-white/[0.08] bg-black/50 backdrop-blur-xl py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div>
+             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-9 h-9 bg-gradient-to-br from-orange-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
                   <Bot className="w-5 h-5 text-white" />
