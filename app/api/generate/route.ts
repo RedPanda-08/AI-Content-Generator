@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// 1. Define Types for TypeScript
+// 1. Define Types
 interface BrandMetadata {
   brand_name?: string;
   brand_tone?: string;
@@ -28,11 +28,9 @@ export async function POST(request: NextRequest) {
     });
 
     // 3. Initialize Supabase (Cookie-Aware)
-    const cookieStore = await cookies(); // await is safer for Next.js 15+
+    const cookieStore = await cookies();
     
-    // Safety check for env vars
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      console.error("Missing Supabase Env Vars in API Route");
       return NextResponse.json({ error: 'Server Configuration Error' }, { status: 500 });
     }
 
@@ -50,17 +48,17 @@ export async function POST(request: NextRequest) {
                 cookieStore.set(name, value, options)
               );
             } catch {
-              // API routes cannot set cookies after headers are sent, this is normal
+              // API routes are read-only for cookies
             }
           },
         },
       }
     );
 
+    // 4. Validate User
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      console.error("Auth Error in API:", authError);
       return NextResponse.json({ error: 'Unauthorized: Please refresh the page.' }, { status: 401 });
     }
 
@@ -78,29 +76,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 6. Get User Prompt
+    // 6. Get User Prompt AND Platform
     const body = await request.json();
-    const { prompt } = body;
+    const { prompt, platform = 'linkedin' } = body; // Default to linkedin if missing
 
     if (!prompt) {
       return NextResponse.json({ error: 'No prompt provided.' }, { status: 400 });
     }
 
-    // 7. Prepare System Prompt
+    // 7. Prepare Smart System Prompt
     const { brand_name, brand_tone, brand_keywords } = (user.user_metadata ?? {}) as BrandMetadata;
 
-    const systemPrompt = `You are ContentAI — an intelligent social media strategist.
+    // Platform Logic Switch
+    let platformRules = "";
+    switch (platform.toLowerCase()) {
+        case 'twitter':
+            platformRules = "Format: A short, punchy tweet (max 280 chars). Use 2-3 relevant hashtags. Be conversational and direct.";
+            break;
+        case 'instagram':
+            platformRules = "Format: An engaging visual caption. Use emojis to break up text. Add a block of 5-10 relevant hashtags at the bottom.";
+            break;
+        case 'linkedin':
+        default:
+            platformRules = "Format: A professional LinkedIn post. Use short paragraphs, bullet points for readability, and a clear call-to-action.";
+            break;
+    }
+
+    const systemPrompt = `You are ContentAI, an expert social media strategist.
     
     BRAND IDENTITY:
     - Name: ${brand_name || "The User's Brand"}
     - Tone: ${brand_tone || "Professional and Engaging"}
     - Keywords: ${brand_keywords || "None provided"}
 
+    TARGET PLATFORM: **${platform.toUpperCase()}**
+    ${platformRules}
+
     WRITING RULES:
     1. Output ONLY the social media post content.
-    2. Adapt tone to the platform mentioned in the prompt.
-    3. Use relevant emojis and hashtags.
-    4. CRITICAL: If the user asks for non-marketing content (code, math, etc), politely decline.`;
+    2. Adapt tone to the platform requested.
+    3. CRITICAL: If the user asks for non-marketing content (code, math, etc), politely decline.`;
 
     // 8. Call OpenAI
     const completion = await openai.chat.completions.create({
@@ -110,7 +125,7 @@ export async function POST(request: NextRequest) {
         { role: 'user', content: prompt },
       ],
       temperature: 0.7,
-      max_tokens: 500,
+      max_tokens: 600, // Increased token limit for LinkedIn posts
     });
 
     const aiContent = completion.choices?.[0]?.message?.content;
@@ -129,18 +144,19 @@ export async function POST(request: NextRequest) {
         console.error("Error deducting credit:", updateError);
     }
 
-    // 10. Save to History
+    // 10. Save to History (Include Platform tag in prompt for clarity)
     await supabase.from('generations').insert<GenerationRecord>({
       user_id: user.id,
-      prompt: prompt,
+      prompt: `[${platform}] ${prompt}`, 
       content: aiContent,
     });
 
+    // 11. Return Result
     return NextResponse.json({ content: aiContent });
 
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
     console.error('Generate Route Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
     return NextResponse.json(
       { error: errorMessage },
       { status: 500 }
