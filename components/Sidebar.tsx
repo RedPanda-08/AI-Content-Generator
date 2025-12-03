@@ -13,7 +13,8 @@ import {
   ChevronRight,
   User,
   Sparkles,
-  Zap
+  Zap,
+  Calendar
 } from "lucide-react";
 
 import { usePathname, useRouter } from "next/navigation";
@@ -25,6 +26,7 @@ const navItems = [
   { name: "Generator", href: "/dashboard", icon: Bot },
   { name: "History", href: "/dashboard/history", icon: History },
   { name: "Brand Voice", href: "/dashboard/settings", icon: Settings },
+  {name : "Calendar", href: "/dashboard/calendar", icon: Calendar}
 ];
 
 export default function Sidebar() {
