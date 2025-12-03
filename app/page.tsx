@@ -101,9 +101,9 @@ export default function HomePage() {
       
       {/* Enhanced gradient background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-orange-500/20 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute top-60 -left-40 w-[500px] h-[500px] bg-pink-500/15 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute bottom-20 right-1/3 w-[400px] h-[400px] bg-red-500/10 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-orange-500/20 rounded-full blur-[110px] animate-pulse"></div>
+        <div className="absolute top-60 -left-40 w-[500px] h-[500px] bg-pink-500/15 rounded-full blur-[110px] animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-20 right-1/3 w-[400px] h-[400px] bg-red-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
       {/* Header */}
