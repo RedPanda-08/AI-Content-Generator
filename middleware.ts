@@ -2,42 +2,61 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next({
-    request: { headers: request.headers },
+  // 1. Create an unmodified response
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
   })
 
+  // 2. Use public env vars
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+  if (!supabaseUrl || !supabaseKey) {
+    return response
+  }
+
+  // 3. Initialize Supabase Client
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
+        getAll() {
+          return request.cookies.getAll()
         },
-        set(name: string, value: string, options: CookieOptions) {
-          response.cookies.set(name, value, options)
-        },
-        remove(name: string, options: CookieOptions) {
-          response.cookies.set(name, '', { ...options, maxAge: 0 })
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
         },
       },
     }
   )
 
-  // Refresh session automatically (keeps user logged in)
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // 4. Refresh Session (This fixes the "Auth Session Missing" error)
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const protectedRoutes = ['/dashboard', '/generator']
+  // 5. Route Protection
+  // We only protect specific UI routes. We DO NOT block API routes here.
+  // API routes return JSON 401 (handled in the route.ts), not a redirect to /login.
+  const protectedRoutes = ['/account', '/settings']
+  const pathname = request.nextUrl.pathname
 
   const isProtected = protectedRoutes.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
+    pathname.startsWith(path)
   )
 
   if (isProtected && !user) {
-    const redirectUrl = new URL('/login', request.url)
-    return NextResponse.redirect(redirectUrl)
+    const loginUrl = new URL('/login', request.url)
+    return NextResponse.redirect(loginUrl)
   }
 
   return response
@@ -45,6 +64,14 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/:path*',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * * FIX: Removed '|api' from the exclusion list below.
+     * This ensures middleware runs on /api/* to refresh the session.
+     */
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

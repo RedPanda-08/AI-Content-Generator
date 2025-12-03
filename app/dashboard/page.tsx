@@ -1,9 +1,55 @@
 'use client';
-import { useState } from 'react';
-import { Send, Bot, Sparkles, User, Copy, Check, BarChart2, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Send, Bot, Sparkles, User, Copy, Check, BarChart2, Loader2, CheckCircle2, AlertCircle, } from 'lucide-react';
 import Textarea from 'react-textarea-autosize'; 
+import { useSupabase } from '../../components/SupabaseProvider'; 
+import { ToastContainer } from "react-toastify";
+
+interface SupabaseContextType {
+  session: { user?: { is_anonymous?: boolean }; access_token?: string } | null;
+  initialized: boolean;
+}
 
 export default function GeneratorPage() {
+  // Safe access to context
+  const context = useSupabase() as SupabaseContextType | null;
+  const { session, initialized } = context || { session: null, initialized: false };
+  
+  // Local loading state to prevent infinite spinner
+  const [isReady, setIsReady] = useState(false);
+
+  const user = session?.user;
+  const isGuest = user?.is_anonymous;
+  const [showBanner, setShowBanner] = useState(true);
+
+  // SAFETY CHECK: Force load after 2 seconds if provider hangs
+  useEffect(() => {
+    // If initialized is true, we are ready immediately
+    if (initialized) {
+      setIsReady(true);
+      return;
+    }
+
+    // If context is null (provider missing), stop loading immediately
+    if (context === null) {
+       console.error("SupabaseProvider Context is missing.");
+       setIsReady(true);
+       return;
+    }
+
+    // Otherwise, wait max 2 seconds for initialization
+    const timer = setTimeout(() => {
+      if (!isReady) {
+        console.warn("Initialization timed out. Forcing load.");
+        setIsReady(true);
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [initialized, context]);
+
+
+  // --- Generator Logic ---
   const [prompt, setPrompt] = useState('');
   const [submittedPrompt, setSubmittedPrompt] = useState('');
   const [generatedContent, setGeneratedContent] = useState('');
@@ -14,9 +60,15 @@ export default function GeneratorPage() {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+  // Debug Logs
+  useEffect(() => {
+    if (isReady) {
+        console.log("Dashboard Ready. User:", user ? "Found" : "Missing");
+    }
+  }, [isReady, user]);
+
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
-    
     setSubmittedPrompt(prompt);
     setIsGenerating(true);
     setError(null);
@@ -24,31 +76,38 @@ export default function GeneratorPage() {
     setAnalysis(null); 
 
     try {
+      // Send token if available (fixes unauthorized)
+      const accessToken = session?.access_token;
+      const headers: HeadersInit = { 'Content-Type': 'application/json' };
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+
       const response = await fetch('/api/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
         body: JSON.stringify({ prompt }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Something went wrong');
+        throw new Error(data.error || 'Something went wrong');
       }
 
-      const data = await response.json();
       setGeneratedContent(data.content);
-    } catch (err) {
-      const error = err as Error;
-      setError(error.message);
+      // Optional: window.location.reload(); 
+
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Something went wrong';
+      setError(errorMessage);
     } finally {
       setIsGenerating(false);
       setPrompt('');
     }
   };
   
-  const handleCardClick = (text: string) => {
-    setPrompt(text);
-  };
+  const handleCardClick = (text: string) => { setPrompt(text); };
   
   const handleCopy = () => {
     if (!generatedContent) return;
@@ -64,85 +123,57 @@ export default function GeneratorPage() {
     setIsAnalyzing(true);
     setAnalysis(null);
     setError(null); 
+    
+    const accessToken = session?.access_token;
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
 
     try {
         const response = await fetch('/api/analyze', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify({ contentToAnalyze: generatedContent }),
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Analysis failed');
-        }
-
         const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Analysis failed');
+        }
         setAnalysis(data.analysis);
-    } catch (err) {
-        const error = err as Error;
-        setAnalysis(`Error during analysis: ${error.message}`);
+
+    } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        setAnalysis(`Error: ${errorMessage}`);
     } finally {
         setIsAnalyzing(false);
     }
   };
 
-  const formatAnalysis = (text: string) => {
+
+  const formatAnalysis = (text: string) => {  
     if (!text) return '';
-    
-    // Split into lines and process
-    const lines = text.split('\n');
-    let formatted = '';
-    let inList = false;
-    
-    lines.forEach((line, index) => {
-      const trimmedLine = line.trim();
-      
-      if (!trimmedLine) {
-        if (inList) {
-          formatted += '</ul>';
-          inList = false;
-        }
-        formatted += '<div class="h-3"></div>';
-        return;
-      }
-      
-      // Headers (lines ending with :)
-      if (trimmedLine.endsWith(':') && !trimmedLine.startsWith('-')) {
-        if (inList) {
-          formatted += '</ul>';
-          inList = false;
-        }
-        formatted += `<h5 class="text-blue-200 font-semibold text-base mb-2 mt-4">${trimmedLine.replace(/\*\*/g, '')}</h5>`;
-      }
-      // List items
-      else if (trimmedLine.startsWith('-') || trimmedLine.startsWith('•')) {
-        if (!inList) {
-          formatted += '<ul class="space-y-2 ml-1">';
-          inList = true;
-        }
-        const content = trimmedLine.substring(1).trim();
-        formatted += `<li class="flex gap-2 text-gray-300 leading-relaxed"><span class="text-blue-400 mt-1 flex-shrink-0">•</span><span>${content.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-medium">$1</strong>')}</span></li>`;
-      }
-      // Regular paragraphs
-      else {
-        if (inList) {
-          formatted += '</ul>';
-          inList = false;
-        }
-        formatted += `<p class="text-gray-300 leading-relaxed mb-3">${trimmedLine.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-medium">$1</strong>')}</p>`;
-      }
-    });
-    
-    if (inList) {
-      formatted += '</ul>';
-    }
-    
-    return formatted;
+    return text; 
   };
+
+
+  // 1. LOADING STATE (With timeout protection)
+  if (!isReady) {
+      return (
+        <div className="flex h-full items-center justify-center">
+            <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+                <span className="text-zinc-500 text-sm">Initializing...</span>
+            </div>
+        </div>
+      );
+  }
 
   return (
     <div className="flex flex-col h-full max-w-4xl mx-auto px-4 py-6">
+
+
+
       <div className="flex-grow overflow-y-auto pr-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
         {!submittedPrompt ? (
             <div className="text-center py-12">
@@ -153,42 +184,19 @@ export default function GeneratorPage() {
                How can I help you today?
              </h1>
              <p className="text-gray-500 mb-12">Choose a prompt below or type your own</p>
-             
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12">
-                <div 
-                  onClick={() => handleCardClick('Write a witty tweet about the struggles of debugging code')} 
-                  className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-orange-500/50 rounded-2xl transition-all cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-orange-500/20 rounded-lg">
-                      <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
-                    </div>
-                    <h3 className="font-semibold text-gray-200">Witty Tweet</h3>
-                  </div>
+                <div onClick={() => handleCardClick('Write a witty tweet about the struggles of debugging code')} className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-orange-500/50 rounded-2xl transition-all cursor-pointer text-left">
+                  <h3 className="font-semibold text-gray-200 mb-2">Witty Tweet</h3>
                   <p className="text-sm text-gray-500">Create a humorous tweet about debugging struggles</p>
                 </div>
-                
-                <div 
-                  onClick={() => handleCardClick('Create an engaging Instagram caption for a picture of a sunset')} 
-                  className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pink-500/50 rounded-2xl transition-all cursor-pointer text-left"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-pink-500/20 rounded-lg">
-                      <svg className="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <h3 className="font-semibold text-gray-200">Instagram Caption</h3>
-                  </div>
+                <div onClick={() => handleCardClick('Create an engaging Instagram caption for a picture of a sunset')} className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pink-500/50 rounded-2xl transition-all cursor-pointer text-left">
+                  <h3 className="font-semibold text-gray-200 mb-2">Instagram Caption</h3>
                   <p className="text-sm text-gray-500">Craft an engaging caption for a sunset photo</p>
                 </div>
              </div>
            </div>
         ) : (
           <div className="space-y-8 pb-4">
-            {/* User Message */}
             <div className="flex gap-4 items-start">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
                 <User className="w-5 h-5 text-white" />
@@ -198,88 +206,32 @@ export default function GeneratorPage() {
               </div>
             </div>
             
-            {/* AI Response */}
             <div className="flex gap-4 items-start">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center flex-shrink-0 mt-1 shadow-lg shadow-orange-500/30">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              
               {isGenerating ? (
-                <div className="flex-1">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <Loader2 className="w-5 h-5 animate-spin text-orange-400" />
-                        <div className="absolute inset-0 w-5 h-5 rounded-full bg-orange-400/20 animate-ping"></div>
-                      </div>
-                      <span className="text-gray-400 text-sm">Generating your content...</span>
-                    </div>
-                    <div className="space-y-2.5 mt-4">
-                      <div className="h-3 bg-gradient-to-r from-white/10 to-transparent rounded animate-pulse"></div>
-                      <div className="h-3 bg-gradient-to-r from-white/10 to-transparent rounded animate-pulse" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="h-3 bg-gradient-to-r from-white/10 to-transparent rounded w-3/4 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                  </div>
-                </div>
-              ) : error ? (
-                <div className="flex-1">
-                  <div className="text-red-300 p-4 bg-red-500/10 border border-red-500/30 rounded-xl">
-                    <p className="font-semibold mb-1">Error</p>
-                    <p className="text-sm">{error}</p>
-                  </div>
-                </div>
+                <div className="flex-1"><span className="text-gray-400 text-sm">Generating...</span></div>
               ) : (
                 <div className="flex-1 min-w-0">
                   <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                    <div className="flex justify-end gap-2 mb-4">
-                      <button 
-                        onClick={handleAnalyze} 
-                        disabled={isAnalyzing} 
-                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-blue-500/50 rounded-xl text-sm text-gray-300 hover:text-white transition-all disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {isAnalyzing ? <Loader2 size={16} className="animate-spin" /> : <BarChart2 size={16} />}
-                        {isAnalyzing ? 'Analyzing...' : 'Analyze'}
-                      </button>
-                      <button 
-                        onClick={handleCopy} 
-                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-green-500/50 rounded-xl text-sm text-gray-300 hover:text-white transition-all"
-                      >
-                        {copySuccess ? <Check size={16} className="text-green-400" /> : <Copy size={16} />}
-                        {copySuccess ? 'Copied!' : 'Copy'}
-                      </button>
-                    </div>
-                    
-                    <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">
-                      {generatedContent}
+                    <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">{generatedContent}</div>
+                    <div className="flex justify-end gap-2 mt-4">
+                        <button onClick={handleCopy} className="flex items-center cursor-pointer gap-2 px-3 py-1.5 text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
+                            {copySuccess ? <Check size={14} /> : <Copy size={14} />}
+                            {copySuccess ? 'Copied' : 'Copy'}
+                        </button>
+                        <button onClick={handleAnalyze} disabled={isAnalyzing} className="flex items-center gap-2 px-3 py-1.5 text-xs bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 rounded-lg transition-colors disabled:opacity-50">
+                            {isAnalyzing ? <Loader2 size={14} className="animate-spin" /> : <BarChart2 size={14} />}
+                            Analyze
+                        </button>
                     </div>
                   </div>
-                  
-                  {/* Analysis Section */}
                   {(isAnalyzing || analysis) && (
-                    <div className="mt-6 bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/30 rounded-2xl p-6 shadow-lg">
-                      <div className="flex items-center gap-3 mb-5 pb-4 border-b border-blue-500/20">
-                        <div className="p-2 bg-blue-500/20 rounded-lg">
-                          <BarChart2 size={20} className="text-blue-400" />
-                        </div>
-                        <h4 className="font-semibold text-blue-200 text-lg">Strategic Insights</h4>
-                      </div>
-                      {isAnalyzing ? (
-                        <div className="flex flex-col items-center justify-center py-8 gap-4">
-                          <div className="relative">
-                            <Loader2 size={32} className="animate-spin text-blue-400" />
-                            <div className="absolute inset-0 w-8 h-8 rounded-full bg-blue-400/20 animate-ping"></div>
-                          </div>
-                          <span className="text-blue-300/80 text-sm">Analyzing your content...</span>
-                        </div>
-                      ) : (
-                        <div 
-                          className="text-sm prose prose-invert max-w-none"
-                          dangerouslySetInnerHTML={{ 
-                            __html: formatAnalysis(analysis || '')
-                          }} 
-                        />
-                      )}
-                    </div>
+                     <div className="mt-4 p-4 bg-blue-900/20 border border-blue-500/20 rounded-xl">
+                        <h4 className="text-blue-300 text-sm font-semibold mb-2 cursor-pointer">Analysis</h4>
+                        {isAnalyzing ? <Loader2 className="w-5 h-5 animate-spin text-blue-400" /> : <p className="text-sm text-blue-100 whitespace-pre-wrap">{analysis}</p>}
+                     </div>
                   )}
                 </div>
               )}
@@ -288,7 +240,6 @@ export default function GeneratorPage() {
         )}
       </div>
 
-      {/* Input Area */}
       <div className="mt-6 flex-shrink-0">
         <div className="relative bg-white/5 border border-white/10 rounded-2xl focus-within:border-orange-500/50 transition-colors">
           <Textarea
@@ -298,24 +249,13 @@ export default function GeneratorPage() {
             className="w-full bg-transparent text-gray-200 placeholder-gray-500 rounded-2xl py-4 pl-6 pr-16 resize-none outline-none"
             minRows={1}
             maxRows={8}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) { 
-                e.preventDefault(); 
-                handleGenerate(); 
-              }
-            }}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGenerate(); } }}
           />
-          <button
-            onClick={handleGenerate}
-            disabled={!prompt.trim() || isGenerating}
-            className="absolute right-3 bottom-3 p-2.5 bg-gradient-to-r from-orange-500 to-pink-600 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed hover:from-orange-600 hover:to-pink-700 rounded-xl transition-all shadow-lg disabled:shadow-none transform hover:scale-105 disabled:scale-100"
-          >
+          <button onClick={handleGenerate} disabled={!prompt.trim() || isGenerating} className="absolute right-3 bottom-3 p-2.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl transition-all shadow-lg hover:scale-105 disabled:scale-100 disabled:opacity-50">
             <Send className="w-5 h-5 text-white" />
           </button>
         </div>
-        <p className="text-xs text-gray-600 text-center mt-3">
-          ContentAI can make mistakes. Consider checking important information.
-        </p>
+        <p className="text-xs text-gray-600 text-center mt-3">ContentAI can make mistakes. Consider checking important information.</p>
       </div>
     </div>
   );
