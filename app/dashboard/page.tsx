@@ -211,12 +211,36 @@ export default function GeneratorPage() {
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               {isGenerating ? (
-                <div className="flex-1"><span className="text-gray-400 text-sm">Generating...</span></div>
+                <div className="flex-1">
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                    <div className="flex items-center gap-3">
+                      <div className="flex gap-1.5">
+                        <span className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                        <span className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                        <span className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                      </div>
+                      <span className="text-gray-400 text-sm font-medium">Generating your content...</span>
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <div className="flex-1 min-w-0">
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                    <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">{generatedContent}</div>
-                    <div className="flex justify-end gap-2 mt-4">
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-6 animate-fadeIn">
+                    <div className="text-gray-200 leading-loose font-['Inter',sans-serif] text-[15px]" style={{ 
+                      lineHeight: '1.8',
+                      letterSpacing: '0.01em'
+                    }}>
+                      {generatedContent.split('\n').map((paragraph, index) => (
+                        paragraph.trim() ? (
+                          <p key={index} className="mb-4 last:mb-0">
+                            {paragraph}
+                          </p>
+                        ) : (
+                          <br key={index} />
+                        )
+                      ))}
+                    </div>
+                    <div className="flex justify-end gap-2 mt-6 pt-4 border-t border-white/10">
                         <button onClick={handleCopy} className="flex items-center cursor-pointer gap-2 px-3 py-1.5 text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
                             {copySuccess ? <Check size={14} /> : <Copy size={14} />}
                             {copySuccess ? 'Copied' : 'Copy'}
@@ -228,9 +252,44 @@ export default function GeneratorPage() {
                     </div>
                   </div>
                   {(isAnalyzing || analysis) && (
-                     <div className="mt-4 p-4 bg-blue-900/20 border border-blue-500/20 rounded-xl">
-                        <h4 className="text-blue-300 text-sm font-semibold mb-2 cursor-pointer">Analysis</h4>
-                        {isAnalyzing ? <Loader2 className="w-5 h-5 animate-spin text-blue-400" /> : <p className="text-sm text-blue-100 whitespace-pre-wrap">{analysis}</p>}
+                     <div className="mt-4 p-5 bg-gradient-to-br from-blue-900/20 to-purple-900/10 border border-blue-500/20 rounded-2xl animate-fadeIn shadow-lg">
+                        <div className="flex items-center gap-2 mb-3">
+                          <BarChart2 className="w-4 h-4 text-blue-400" />
+                          <h4 className="text-blue-300 text-sm font-bold tracking-wide">Content Analysis</h4>
+                        </div>
+                        {isAnalyzing ? (
+                          <div className="flex items-center gap-3 py-2">
+                            <Loader2 className="w-5 h-5 animate-spin text-blue-400" />
+                            <span className="text-sm text-blue-300 font-medium">Analyzing your content...</span>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-blue-100/90 leading-relaxed font-['Inter',sans-serif] space-y-3" style={{ lineHeight: '1.8' }}>
+                            {analysis?.split('\n').map((line, index) => {
+                              // Remove asterisks and clean up formatting
+                              const cleanLine = line
+                                .replace(/\*\*/g, '')  // Remove bold asterisks
+                                .replace(/\*/g, '')    // Remove single asterisks
+                                .replace(/^#+\s*/, '') // Remove markdown headers
+                                .trim();
+                              
+                              // Skip empty lines
+                              if (!cleanLine) return null;
+                              
+                              // Check if it's a heading (starts with capital and is short)
+                              const isHeading = cleanLine.length < 60 && /^[A-Z]/.test(cleanLine) && !cleanLine.includes('.');
+                              
+                              return isHeading ? (
+                                <h5 key={index} className="text-blue-200 font-semibold mt-4 first:mt-0 text-[15px]">
+                                  {cleanLine}
+                                </h5>
+                              ) : (
+                                <p key={index} className="text-blue-100/80">
+                                  {cleanLine}
+                                </p>
+                              );
+                            })}
+                          </div>
+                        )}
                      </div>
                   )}
                 </div>
@@ -246,7 +305,7 @@ export default function GeneratorPage() {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Message ContentAI..."
-            className="w-full bg-transparent text-gray-200 placeholder-gray-500 rounded-2xl py-4 pl-6 pr-16 resize-none outline-none"
+            className="w-full bg-transparent text-gray-200 placeholder-gray-500 rounded-2xl py-4 pl-6 pr-16 resize-none outline-none font-['Inter',sans-serif]"
             minRows={1}
             maxRows={8}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGenerate(); } }}
@@ -257,6 +316,22 @@ export default function GeneratorPage() {
         </div>
         <p className="text-xs text-gray-600 text-center mt-3">ContentAI can make mistakes. Consider checking important information.</p>
       </div>
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.5s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
