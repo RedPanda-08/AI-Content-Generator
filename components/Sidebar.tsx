@@ -265,7 +265,7 @@ export default function Sidebar() {
 
           {/* Guest Upgrade Button */}
           {!loading && isGuest && !isCollapsed && (
-            <Link href="/login">
+            <Link href="/dashboard/subscriptions">
               <button
                 className="
                 w-full flex items-center justify-center gap-2
@@ -273,10 +273,10 @@ export default function Sidebar() {
                 bg-gradient-to-r from-amber-500 to-orange-500
                 hover:from-amber-600 hover:to-orange-600
                 rounded-xl transition-all shadow-lg shadow-amber-500/20
-                hover:shadow-amber-500/30 hover:scale-[1.02]
+                hover:shadow-amber-500/30 hover:scale-[1.02] cursor-pointer
               "
               >
-                <Sparkles className="h-4 w-4 cursor-pointer" />
+                <Sparkles className="h-4 w-4 " />
                 Upgrade to Pro
               </button>
             </Link>
