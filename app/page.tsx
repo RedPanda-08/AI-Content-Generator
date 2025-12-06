@@ -43,6 +43,7 @@ export default function HomePage() {
 
   const handleStartTrial = async () => {
     if (session?.user) {
+      setStatus('redirecting');
       router.push('/dashboard');
       return;
     }
@@ -53,13 +54,11 @@ export default function HomePage() {
       if (createGuestAccount) {
         await createGuestAccount();
       }
-
-      setStatus('redirecting');
       
       setTimeout(() => {
         router.push('/dashboard');
         router.refresh();
-      }, 1000);
+      }, 3000);
 
     } catch (error) {
       console.error("Failed to start trial:", error);
