@@ -27,26 +27,26 @@ export default function LoginPage() {
   }, [router, supabase]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black p-4">
-      {/* Your beautiful background and card layout */}
-      <div className="absolute -top-40 -right-40 w-96 h-96 bg-orange-500/30 rounded-full blur-3xl animate-pulse"></div>
+    <div className="min-h-screen h-screen overflow-hidden flex items-center justify-center relative overflow-hidden bg-black p-4 sm:p-6 md:p-8">
+      {/* Background gradients */}
+      <div className="absolute -top-40 -right-40 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-orange-500/30 rounded-full blur-3xl animate-pulse"></div>
       <div
-        className="absolute top-60 -left-40 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl animate-pulse"
+        className="absolute top-60 -left-40 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-pink-500/20 rounded-full blur-3xl animate-pulse"
         style={{ animationDelay: '1s' }}
       ></div>
       <div
-        className="absolute bottom-20 right-1/3 w-96 h-96 bg-red-500/20 rounded-full blur-3xl animate-pulse"
+        className="absolute bottom-20 right-1/3 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-red-500/20 rounded-full blur-3xl animate-pulse"
         style={{ animationDelay: '2s' }}
       ></div>
 
       <div className="w-full max-w-md relative z-10">
-        <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/10 p-8 space-y-6">
-          {/* Header that dynamically changes */}
+        <div className="bg-white/5 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl border border-white/10 p-6 sm:p-8 space-y-5 sm:space-y-6">
+          {/* Header */}
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl mb-2 shadow-lg shadow-orange-500/50">
+            <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-br from-orange-500 to-pink-600 rounded-xl sm:rounded-2xl mb-2 shadow-lg shadow-orange-500/50">
               {view === 'sign_in' ? (
                 <svg
-                  className="w-8 h-8 text-white"
+                  className="w-7 h-7 sm:w-8 sm:h-8 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -60,7 +60,7 @@ export default function LoginPage() {
                 </svg>
               ) : (
                 <svg
-                  className="w-8 h-8 text-white"
+                  className="w-7 h-7 sm:w-8 sm:h-8 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -74,10 +74,10 @@ export default function LoginPage() {
                 </svg>
               )}
             </div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-pink-500 bg-clip-text text-transparent">
+            <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-orange-400 to-pink-500 bg-clip-text text-transparent">
               {view === 'sign_in' ? 'Welcome Back' : 'Create an Account'}
             </h2>
-            <p className="text-gray-400 text-sm">
+            <p className="text-gray-400 text-xs sm:text-sm px-2">
               {view === 'sign_in'
                 ? 'Sign in to continue creating amazing content'
                 : 'Join thousands of creators using AI-powered content'}
@@ -128,10 +128,10 @@ export default function LoginPage() {
                 },
                 className: {
                   container: 'space-y-4',
-                  label: 'font-semibold !ml-1',
-                  button: 'font-semibold !transition-all !duration-200',
-                  input: '!transition-all !duration-200',
-                  anchor: '!font-semibold !text-sm',
+                  label: 'font-semibold !ml-1 !text-sm sm:!text-base',
+                  button: 'font-semibold !transition-all !duration-200 !text-sm sm:!text-base',
+                  input: '!transition-all !duration-200 !text-sm sm:!text-base',
+                  anchor: '!font-semibold !text-xs sm:!text-sm',
                 },
               }}
               localization={{
@@ -146,9 +146,9 @@ export default function LoginPage() {
           </div>
 
           {/* Custom Toggle Links */}
-          <div className="text-center pt-4 border-t border-white/10">
+          <div className="text-center pt-3 sm:pt-4 border-t border-white/10">
             {view === 'sign_in' ? (
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-400 text-xs sm:text-sm">
                 Don&apos;t have an account?{' '}
                 <button
                   onClick={() => setView('sign_up')}
@@ -158,7 +158,7 @@ export default function LoginPage() {
                 </button>
               </p>
             ) : (
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-400 text-xs sm:text-sm">
                 Already have an account?{' '}
                 <button
                   onClick={() => setView('sign_in')}
@@ -174,10 +174,10 @@ export default function LoginPage() {
           <div className="text-center">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-300 transition-colors"
+              className="inline-flex items-center gap-2 text-xs sm:text-sm text-gray-500 hover:text-gray-300 transition-colors"
             >
               <svg
-                className="w-4 h-4"
+                className="w-3.5 h-3.5 sm:w-4 sm:h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -203,6 +203,7 @@ export default function LoginPage() {
           box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.5) !important;
           border: none !important;
           font-weight: 600 !important;
+          min-height: 44px !important;
         }
 
         .supabase-auth-custom button[type='submit']:hover {
@@ -212,6 +213,10 @@ export default function LoginPage() {
         }
 
         /* Input fields */
+        .supabase-auth-custom input {
+          min-height: 44px !important;
+        }
+
         .supabase-auth-custom input:focus {
           box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1) !important;
           background: rgba(255, 255, 255, 0.1) !important;
@@ -221,8 +226,22 @@ export default function LoginPage() {
         .supabase-auth-custom a {
           display: none !important;
         }
+
+        /* Responsive font sizes for mobile */
+        @media (max-width: 640px) {
+          .supabase-auth-custom input {
+            font-size: 14px !important;
+          }
+          
+          .supabase-auth-custom button {
+            font-size: 14px !important;
+          }
+          
+          .supabase-auth-custom label {
+            font-size: 13px !important;
+          }
+        }
       `}</style>
     </div>
   );
 }
-
