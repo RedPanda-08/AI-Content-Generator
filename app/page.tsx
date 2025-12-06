@@ -205,13 +205,6 @@ export default function HomePage() {
             </div>
           </motion.div>
         </motion.div>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className="w-6 h-10 border-2 border-white/10 rounded-full flex justify-center p-2">
-            <div className="w-1.5 h-3 bg-gradient-to-b from-orange-400 to-pink-500 rounded-full"></div>
-          </div>
-        </div>
       </section>
 
       {/* ===== Stats Section ===== */}
