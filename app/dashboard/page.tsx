@@ -147,7 +147,7 @@ export default function GeneratorPage() {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto px-4 py-6 relative">
+    <div className="flex flex-col h-full max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 relative">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -163,7 +163,7 @@ export default function GeneratorPage() {
                How can I help you today?
              </h1>
              <p className="text-gray-500 mb-12">Choose a prompt below or type your own</p>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-10 sm:mt-12">
                 <div onClick={() => handleCardClick('Write a witty tweet about the struggles of debugging code', 'twitter')} className="p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-orange-500/50 rounded-2xl transition-all cursor-pointer text-left">
                   <h3 className="font-semibold text-gray-200 mb-2 flex items-center gap-2"><Twitter className="w-4 h-4 text-sky-400"/> Witty Tweet</h3>
                   <p className="text-sm text-gray-500">Create a humorous tweet about debugging struggles</p>
@@ -176,7 +176,7 @@ export default function GeneratorPage() {
            </div>
         ) : (
           <div className="space-y-8 pb-4">
-            <div className="flex gap-4 items-start">
+            <div className="flex gap-3 sm:gap-4 items-start">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
                 <User className="w-5 h-5 text-white" />
               </div>
@@ -189,7 +189,7 @@ export default function GeneratorPage() {
               </div>
             </div>
             
-            <div className="flex gap-4 items-start">
+            <div className="flex gap-3 sm:gap-4 items-start">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center flex-shrink-0 mt-1 shadow-lg shadow-orange-500/30">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
@@ -197,9 +197,9 @@ export default function GeneratorPage() {
                 <div className="flex-1"><span className="text-gray-400 text-sm">Generating...</span></div>
               ) : (
                 <div className="flex-1 min-w-0">
-                  <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6">
                     <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">{generatedContent}</div>
-                    <div className="flex justify-end gap-2 mt-4">
+                    <div className="flex flex-wrap justify-end gap-2 mt-4">
                         <button onClick={handleCopy} className="flex items-center gap-2 px-3 py-1.5 text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
                             {copySuccess ? <Check size={14} /> : <Copy size={14} />}
                             {copySuccess ? 'Copied' : 'Copy'}
@@ -234,7 +234,7 @@ export default function GeneratorPage() {
                         key={p}
                         onClick={() => setPlatform(p)}
                         className={`
-                            px-3 py-1 rounded-full text-xs flex items-center gap-1 transition-all
+                            px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs flex items-center gap-1 transition-all
                             ${platform === p 
                                 ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' 
                                 : 'bg-transparent text-gray-400 hover:bg-white/5 hover:text-gray-300'
@@ -252,12 +252,12 @@ export default function GeneratorPage() {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder={`Write a ${platform} post about...`}
-            className="w-full bg-transparent text-gray-200 placeholder-gray-500 rounded-b-2xl py-4 pl-6 pr-16 resize-none outline-none"
+            className="w-full bg-transparent text-gray-200 placeholder-gray-500 rounded-b-2xl py-3 sm:py-4 pl-4 sm:pl-6 pr-14 sm:pr-16 resize-none outline-none"
             minRows={1}
             maxRows={8}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGenerate(); } }}
           />
-          <button onClick={handleGenerate} disabled={!prompt.trim() || isGenerating} className="absolute right-3 bottom-3 p-2.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl transition-all shadow-lg hover:scale-105 disabled:scale-100 disabled:opacity-50">
+          <button onClick={handleGenerate} disabled={!prompt.trim() || isGenerating} className="absolute right-2 sm:right-3 bottom-2 sm:bottom-3 p-2 sm:p-2.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl transition-all shadow-lg hover:scale-105 disabled:scale-100 disabled:opacity-50">
             <Send className="w-5 h-5 text-white" />
           </button>
         </div>
