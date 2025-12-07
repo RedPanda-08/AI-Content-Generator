@@ -85,12 +85,14 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile Toggle Button */}
-      <button
-        onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-neutral-900/90 backdrop-blur-xl rounded-xl border border-neutral-800/50 text-white hover:bg-neutral-800/90 transition-all shadow-lg"
-      >
-        {isMobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </button>
+      {!isMobileOpen && (
+        <button
+          onClick={() => setIsMobileOpen(true)}
+          className="lg:hidden fixed top-4 left-4 z-50 p-3 bg-neutral-900/90 backdrop-blur-xl rounded-xl border border-neutral-800/50 text-white hover:bg-neutral-800/90 transition-all shadow-lg"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      )}
 
       {/* Mobile overlay */}
       {isMobileOpen && (
@@ -99,12 +101,6 @@ export default function Sidebar() {
           className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
         />
       )}
-
-      {/* ============================================================
-          FIXED SIDEBAR HEIGHT:
-          h-[100svh] → supports mobile dynamic viewport height
-          min-h-screen → fallback
-      ============================================================ */}
       <aside
         className={`
           fixed lg:relative top-0 left-0 
