@@ -143,7 +143,7 @@ export default function GeneratorPage() {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 relative">
+    <div className="flex flex-col min-h-[100svh] max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 relative">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

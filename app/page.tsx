@@ -92,7 +92,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black via-neutral-950 to-black text-white overflow-hidden">
+    <main className="min-h-[100svh] bg-gradient-to-b from-black via-neutral-950 to-black text-white overflow-hidden">
       
       {/* Enhanced gradient background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">

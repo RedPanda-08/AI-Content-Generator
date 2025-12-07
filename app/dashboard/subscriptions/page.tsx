@@ -80,7 +80,7 @@ export default function SubscriptionPage() {
   ];
 
   return (
-    <div className="w-full min-h-[100dvh] overflow-y-auto custom-scrollbar">
+    <div className="w-full min-h-[100svh] overflow-y-auto custom-scrollbar">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8 lg:py-10 pb-16 sm:pb-20 lg:pb-24">
 
         {/* Header */}

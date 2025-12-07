@@ -77,7 +77,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="w-full flex justify-center p-6 overflow-y-auto">
+    <div className="w-full min-h-[100svh] flex justify-center p-6 overflow-y-auto">
         <div className="w-full max-w-2xl bg-gray-900/60 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-gray-800 my-8">
             <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-orange-400 to-pink-600 bg-clip-text text-transparent">
             ✨ Brand Voice Settings
