@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react"; // Added useRef
 import { createBrowserClient } from "@supabase/ssr";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -32,6 +32,9 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+
+  // 1. New Ref to track if we are currently signing out
+  const isSigningOut = useRef(false);
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -48,7 +51,6 @@ export default function Sidebar() {
   useEffect(() => {
     let mounted = true;
 
-    // 1. Separate function just to fetch credits (Doesn't block UI)
     const loadCredits = async (userId: string) => {
       try {
         const { data } = await supabase
@@ -61,11 +63,10 @@ export default function Sidebar() {
           setCredits(data.count);
         }
       } catch (error) {
-        console.error("Error loading credits (Check RLS policies):", error);
+        console.error("Error loading credits:", error);
       }
     };
 
-    // 2. Main Auth Check
     const checkAuth = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -73,7 +74,6 @@ export default function Sidebar() {
         if (mounted) {
           if (session?.user) {
             setUser(session.user);
-            // Trigger credit fetch in background - DO NOT AWAIT IT
             loadCredits(session.user.id);
           } else {
             setUser(null);
@@ -82,7 +82,6 @@ export default function Sidebar() {
       } catch (e) {
         console.error("Auth check failed", e);
       } finally {
-        // 3. ALWAYS turn off loading, even if credits/auth fail
         if (mounted) {
           setLoading(false);
         }
@@ -91,10 +90,14 @@ export default function Sidebar() {
 
     checkAuth();
 
-    // 4. Real-time Listener
+    // 2. Updated Listener: Checks isSigningOut before updating UI
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
       
+      // If we are in the middle of a manual sign-out, STOP here.
+      // This prevents the UI from flipping to "Guest" before the redirect happens.
+      if (isSigningOut.current) return;
+
       if (session?.user) {
         setUser(session.user);
         loadCredits(session.user.id);
@@ -113,9 +116,11 @@ export default function Sidebar() {
   }, [supabase, router]);
 
   const handleSignOut = async () => {
+    // 3. Set flag to TRUE immediately
+    isSigningOut.current = true;
+    
     await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
+    window.location.href = "/"; 
   };
 
   const isGuest = user === null || user?.is_anonymous === true;
