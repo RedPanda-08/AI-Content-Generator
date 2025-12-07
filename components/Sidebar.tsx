@@ -15,7 +15,7 @@ import {
   Sparkles,
   Zap,
   Calendar,
-  CreditCard // Ensure this is imported if you used it in navItems
+  CreditCard 
 } from "lucide-react";
 
 import { usePathname, useRouter } from "next/navigation";
@@ -124,7 +124,7 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 sm:p-4 space-y-1.5 sm:space-y-2 ">
+        <nav className="flex-1 p-3 sm:p-4 space-y-1.5 sm:space-y-2 overflow-y-auto scrollbar-none">
           {!isCollapsed && (
             <div className="px-3 py-1.5 sm:py-2 mb-3 sm:mb-4">
               <span className="text-[10px] sm:text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Workspace</span>
@@ -157,7 +157,7 @@ export default function Sidebar() {
         {/* User Section */}
         <div className="p-3 sm:p-4 border-t border-neutral-800/50 space-y-2.5 sm:space-y-3">
           
-          {/* Credits Counter */}
+          {/* Credits Counter (Hide when collapsed) */}
           {!isCollapsed && !loading && (
             <div className="bg-neutral-900/50 rounded-xl p-3 sm:p-4 border border-neutral-800/50 mb-2">
               <div className="flex items-center justify-between mb-2">
@@ -188,17 +188,27 @@ export default function Sidebar() {
             )}
           </div>
 
-          {/* Upgrade Button - NOW VISIBLE FOR EVERYONE (Guest & Real) */}
-          {!loading && !isCollapsed && (
-            <Link href="/dashboard/subscription">
-              <button className="w-full flex items-center justify-center gap-2 text-white text-xs sm:text-sm font-semibold py-25 sm:py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 rounded-lg sm:rounded-xl transition-all shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 hover:scale-[1.02] cursor-pointer">
-                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                Upgrade to Pro
+          {/* Upgrade Button - Responsive Logic Added */}
+          {!loading && (
+            <Link href="/dashboard/subscription" className={isCollapsed ? 'flex justify-center' : 'block'}>
+              <button className={`
+                flex items-center justify-center gap-2 text-white font-semibold 
+                bg-gradient-to-r from-amber-500 to-orange-500 
+                hover:from-amber-600 hover:to-orange-600 
+                shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 hover:scale-[1.02] cursor-pointer transition-all
+                ${isCollapsed 
+                  ? "w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl p-0" 
+                  : "w-full py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-sm"}
+              `}
+              title={isCollapsed ? "Upgrade to Pro" : ""}
+              >
+                <Sparkles className={`${isCollapsed ? "w-5 h-5" : "h-3.5 w-3.5 sm:h-4 sm:w-4"}`} />
+                {!isCollapsed && <span>Upgrade to Pro</span>}
               </button>
             </Link>
           )}
 
-          {/* Logout Button (Real Users Only) */}
+          {/* Logout Button */}
           {!loading && !isGuest && (
             <button onClick={handleSignOut} className={`w-full flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/40 transition-all cursor-pointer border border-transparent hover:border-neutral-700/50 ${isCollapsed ? "justify-center px-3" : ""}`}>
               <LogOut className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
