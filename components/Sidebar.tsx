@@ -48,67 +48,62 @@ export default function Sidebar() {
   useEffect(() => {
     let mounted = true;
 
-    const initSidebar = async () => {
+    // 1. Separate function just to fetch credits (Doesn't block UI)
+    const loadCredits = async (userId: string) => {
       try {
-        // 1. Get current session
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data } = await supabase
+          .from('credits')
+          .select('count')
+          .eq('user_id', userId)
+          .maybeSingle();
 
+        if (mounted && data) {
+          setCredits(data.count);
+        }
+      } catch (error) {
+        console.error("Error loading credits (Check RLS policies):", error);
+      }
+    };
+
+    // 2. Main Auth Check
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
         if (mounted) {
           if (session?.user) {
             setUser(session.user);
-            
-            // 2. Fetch credits safely
-            // .maybeSingle() returns null if no row found (instead of erroring)
-            const { data: creditData } = await supabase
-              .from('credits')
-              .select('count')
-              .eq('user_id', session.user.id)
-              .maybeSingle();
-
-            if (mounted && creditData) {
-              setCredits(creditData.count);
-            }
+            // Trigger credit fetch in background - DO NOT AWAIT IT
+            loadCredits(session.user.id);
           } else {
             setUser(null);
-            setCredits(null);
           }
         }
-      } catch (error) {
-        console.error("Sidebar load error:", error);
+      } catch (e) {
+        console.error("Auth check failed", e);
       } finally {
-        // 3. FORCE loading to stop, regardless of errors
+        // 3. ALWAYS turn off loading, even if credits/auth fail
         if (mounted) {
           setLoading(false);
         }
       }
     };
 
-    initSidebar();
+    checkAuth();
 
-    // 4. Real-time listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // 4. Real-time Listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
-
+      
       if (session?.user) {
         setUser(session.user);
-        
-        const { data: creditData } = await supabase
-          .from('credits')
-          .select('count')
-          .eq('user_id', session.user.id)
-          .maybeSingle();
-
-        if (mounted && creditData) {
-          setCredits(creditData.count);
-        }
+        loadCredits(session.user.id);
       } else {
         setUser(null);
         setCredits(null);
       }
-      
-      // Ensure loading stops here too
       setLoading(false);
-      router.refresh(); 
+      router.refresh();
     });
 
     return () => {
