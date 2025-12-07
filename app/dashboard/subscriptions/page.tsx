@@ -20,7 +20,6 @@ export default function SubscriptionPage() {
 
   const handleUpgrade = (tier: string) => {
     setLoadingTier(tier);
-    // Simulate Stripe Checkout
     setTimeout(() => {
       setLoadingTier(null);
       alert(`Redirecting to ${tier} checkout...`);
@@ -81,9 +80,9 @@ export default function SubscriptionPage() {
   ];
 
   return (
-    <div className="w-full h-screen overflow-y-auto custom-scrollbar">
+    <div className="w-full min-h-[100dvh] overflow-y-auto custom-scrollbar">
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8 lg:py-10 pb-16 sm:pb-20 lg:pb-24">
-        
+
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16 space-y-3 sm:space-y-4 pl-12 sm:pl-0">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">Choose Your Plan</h1>
