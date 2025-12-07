@@ -133,7 +133,7 @@ export default function HomePage() {
             <Link href="/login" className="text-gray-400 hover:text-white font-medium transition-colors text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2">Log In</Link>
             <button 
               onClick={handleStartTrial}
-              className="px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transform hover:-translate-y-0.5 transition-all whitespace-nowrap"
+              className="px-3 sm:px-5 py-2 sm:py-2.5 cursor-pointer bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transform hover:-translate-y-0.5 transition-all whitespace-nowrap"
             >
               Get Started
             </button>

@@ -246,8 +246,11 @@ export default function Sidebar() {
 
           {/* Upgrade button */}
           {!loading && isGuest && !isCollapsed && (
-            <Link href="/dashboard/subscriptions">
-              <button className="w-full flex items-center justify-center gap-2 text-sm font-semibold py-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl hover:scale-[1.02] transition-all shadow-lg shadow-amber-500/20">
+            <Link 
+              href="/dashboard/subscriptions" 
+              onClick={() => setIsMobileOpen(false)}
+            >
+              <button className="w-full flex cursor-pointer items-center justify-center gap-2 text-sm font-semibold py-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl hover:scale-[1.02] transition-all shadow-lg shadow-amber-500/20">
                 <Sparkles className="w-4 h-4" />
                 Upgrade to Pro
               </button>
@@ -263,7 +266,7 @@ export default function Sidebar() {
               }`}
             >
               <LogOut className="w-5 h-5" />
-              {!isCollapsed && <span className="text-sm font-medium">Sign Out</span>}
+              {!isCollapsed && <span className="text-sm cursor-pointer font-medium">Sign Out</span>}
             </button>
           )}
         </div>
