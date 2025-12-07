@@ -18,11 +18,13 @@
     --foreground: #ededed;
   }
 }
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
 @keyframes gradient-animation {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -49,3 +51,51 @@ body {
   animation: fade-in-up 0.8s ease-out forwards;
 }
 
+/* Custom Scrollbar Styles - More Specific */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #404040 !important;
+  border-radius: 4px !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #525252 !important;
+}
+
+/* Firefox scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin !important;
+  scrollbar-color: #404040 transparent !important;
+}
+
+/* Global scrollbar styles as fallback */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #404040 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #404040;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #525252;
+}
