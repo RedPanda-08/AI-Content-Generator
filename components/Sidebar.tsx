@@ -45,56 +45,68 @@ export default function Sidebar() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  // ============================================================
-  // FIXED AUTH LOGIC:
-  // 1. Uses getSession (faster/safer for refresh)
-  // 2. Uses onAuthStateChange (listens for login/logout events)
-  // ============================================================
   useEffect(() => {
     let mounted = true;
 
-    // Helper to fetch credits
-    const fetchCredits = async (userId: string) => {
-      const { data: creditData } = await supabase
-        .from('credits')
-        .select('count')
-        .eq('user_id', userId)
-        .single();
-      
-      if (mounted && creditData) {
-        setCredits(creditData.count);
-      }
-    };
+    const initSidebar = async () => {
+      try {
+        // 1. Get current session
+        const { data: { session } } = await supabase.auth.getSession();
 
-    // 1. Check Session Immediately
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (mounted) {
-        if (session?.user) {
-          setUser(session.user);
-          await fetchCredits(session.user.id);
-        } else {
-          setUser(null);
-          setCredits(null);
+        if (mounted) {
+          if (session?.user) {
+            setUser(session.user);
+            
+            // 2. Fetch credits safely
+            // .maybeSingle() returns null if no row found (instead of erroring)
+            const { data: creditData } = await supabase
+              .from('credits')
+              .select('count')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+
+            if (mounted && creditData) {
+              setCredits(creditData.count);
+            }
+          } else {
+            setUser(null);
+            setCredits(null);
+          }
         }
-        setLoading(false);
+      } catch (error) {
+        console.error("Sidebar load error:", error);
+      } finally {
+        // 3. FORCE loading to stop, regardless of errors
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
-    checkSession();
+    initSidebar();
 
-    // 2. Listen for Real-time Auth Changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // 4. Real-time listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
       if (session?.user) {
         setUser(session.user);
-        await fetchCredits(session.user.id);
+        
+        const { data: creditData } = await supabase
+          .from('credits')
+          .select('count')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
+
+        if (mounted && creditData) {
+          setCredits(creditData.count);
+        }
       } else {
         setUser(null);
         setCredits(null);
       }
+      
+      // Ensure loading stops here too
       setLoading(false);
       router.refresh(); 
     });
@@ -139,7 +151,7 @@ export default function Sidebar() {
       <aside
         className={`
           fixed lg:relative top-0 left-0 
-          h-[100dvh] /* Fixed: Changed svh to dvh for mobile address bar support */
+          h-[100dvh]
           bg-gradient-to-b from-neutral-950 via-neutral-950 to-black
           border-r border-neutral-800/50 text-white flex flex-col transition-all duration-300 z-40
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
@@ -177,7 +189,7 @@ export default function Sidebar() {
             {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
           </button>
 
-          {/* Mobile Close Button (Added back per previous request) */}
+          {/* Mobile Close Button */}
           <button
             onClick={() => setIsMobileOpen(false)}
             className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-neutral-800/50 hover:bg-neutral-800 text-white transition-all border border-neutral-700/50"
