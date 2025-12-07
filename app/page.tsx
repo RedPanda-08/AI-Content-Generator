@@ -29,6 +29,50 @@ const fadeInScale = {
   visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
 };
 
+// --- Official Brand Logos (SVG Components) ---
+const OpenAILogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path d="M22.28 9.82a5.98 5.98 0 0 0-.51-4.91 6.05 6.05 0 0 0-6.51-2.9A6.06 6.06 0 0 0 4.98 4.18a5.98 5.98 0 0 0-4 2.9 6.05 6.05 0 0 0 .74 7.1 5.98 5.98 0 0 0 .51 4.91 6.05 6.05 0 0 0 6.51 2.9 6.06 6.06 0 0 0 10.28-2.18 5.98 5.98 0 0 0 4-2.9 6.05 6.05 0 0 0-.74-7.1zm-9.02 12.6a4.47 4.47 0 0 1-2.53-1.37l.01-2.61 4.13-2.41v4.98a4.44 4.44 0 0 1-1.61.91zm3.73-1.37a4.47 4.47 0 0 1-2.53 1.35v-4.96l4.13-2.42v2.6a4.44 4.44 0 0 1-1.6 3.43zm3.19-4.53a4.47 4.47 0 0 1-1.07 2.69l-2.23-1.31v-4.84l2.25-1.31a4.44 4.44 0 0 1 1.05 4.77zm-1.07-7.62a4.47 4.47 0 0 1 1.07 2.68l-2.25 1.3-2.23-1.28L15.69 6.94a4.45 4.45 0 0 1 3.42 1.97zM7.23 7.43a4.47 4.47 0 0 1 3.6-1.93v5l-4.15 2.4-2.23-1.29a4.45 4.45 0 0 1 2.78-4.18zm-3.2 4.53a4.47 4.47 0 0 1 1.08-2.69l2.23 1.31v4.83l-2.25 1.31a4.44 4.44 0 0 1-1.06-4.76z"/>
+  </svg>
+);
+
+const NextJSLogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 180 180" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path fillRule="evenodd" clipRule="evenodd" d="M180 90c0 49.706-40.294 90-90 90S0 139.706 0 90 40.294 0 90 0s90 40.294 90 90zM35 137.978V41h19.556l63.555 83.2H118V41h18v99.556h-17.778L53.222 55.556H53v82.422H35z" />
+  </svg>
+);
+
+const SupabaseLogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path d="M13.35 2.25c-.56-.12-1.12.3-1.12.87v7.5H5.8c-.73 0-1.22.75-.92 1.41l7.07 15.6c.26.58.98.58 1.24 0l.97-2.14 7.07-15.6c.3-.66-.19-1.41-.92-1.41h-6.43v-7.5c0-.57-.56-.99-1.12-.87z" opacity="0.6"/>
+    <path d="M5.8 10.625h6.43V3.12c0-.39.46-.6.76-.34l8.36 18.45-8.36-7.38V20.88c0 .39-.46.6-.76.34L3.87 2.77 12.23 10.625H5.8z" fillRule="evenodd" clipRule="evenodd"/>
+  </svg>
+);
+
+const VercelLogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 1L24 22H0L12 1Z"/>
+  </svg>
+);
+
+const StripeLogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 50 50" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
+    <path d="M16.925 33.7c0-2.825 2.5-4.175 6.6-4.575l3.875-.375v-2.325c0-1.875-.725-2.8-2.65-2.8-1.7 0-2.525.7-2.725 2.125h-5.2c.225-3.675 3.325-5.95 8.025-5.95 5.375 0 7.825 2.575 7.825 7.2v11.3h-5.025v-2.125c-1.325 1.7-3.4 2.525-5.8 2.525-4.1 0-6.925-2.65-6.925-6.05zm10.425-1.5c1.825 0 3.25-.8 3.875-2.075v-2.325l-3.325.325c-2.075.2-3.15.825-3.15 2.125 0 1.2.925 1.95 2.6 1.95z"/>
+  </svg>
+);
+
+const ReactLogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
+     <circle cx="12" cy="12" r="2" fill="currentColor"/>
+     <g stroke="currentColor" strokeWidth="1.5" fill="none">
+        <ellipse rx="10" ry="4.5" cx="12" cy="12"/>
+        <ellipse rx="10" ry="4.5" cx="12" cy="12" transform="rotate(60 12 12)"/>
+        <ellipse rx="10" ry="4.5" cx="12" cy="12" transform="rotate(120 12 12)"/>
+     </g>
+  </svg>
+);
+
+
 interface SupabaseContextType {
   session: { user?: { id: string; email?: string } } | null;
   createGuestAccount: (() => Promise<void>) | undefined;
@@ -43,7 +87,6 @@ export default function HomePage() {
 
   const handleStartTrial = async () => {
     if (session?.user) {
-      setStatus('redirecting');
       router.push('/dashboard');
       return;
     }
@@ -55,10 +98,12 @@ export default function HomePage() {
         await createGuestAccount();
       }
       
+      setStatus('redirecting');
+      
       setTimeout(() => {
         router.push('/dashboard');
         router.refresh();
-      }, 3000);
+      }, 1000);
 
     } catch (error) {
       console.error("Failed to start trial:", error);
@@ -68,32 +113,38 @@ export default function HomePage() {
 
   const renderButtonContent = (defaultText: string) => {
     if (status === 'creating') {
-      return (
-        <>
-          <Loader2 className="w-5 h-5 animate-spin" />
-          Creating Account...
-        </>
-      );
+      return <><Loader2 className="w-5 h-5 animate-spin" /> Creating Account...</>;
     }
     if (status === 'redirecting') {
-      return (
-        <>
-          <Sparkles className="w-5 h-5 animate-pulse" />
-          Redirecting...
-        </>
-      );
+      return <><Sparkles className="w-5 h-5 animate-pulse" /> Redirecting...</>;
     }
-    return (
-      <>
-        {defaultText}
-        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-      </>
-    );
+    return <>{defaultText} <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>;
   };
 
+  // Logos for the ticker - Updated with Official Components
+  const brands = [
+    { name: "OpenAI", icon: OpenAILogo },
+    { name: "Next.js", icon: NextJSLogo },
+    { name: "Supabase", icon: SupabaseLogo },
+    { name: "Vercel", icon: VercelLogo },
+    { name: "Stripe", icon: StripeLogo },
+    { name: "React", icon: ReactLogo },
+  ];
+
   return (
-    <main className="min-h-[100svh] bg-gradient-to-b from-black via-neutral-950 to-black text-white overflow-hidden">
+    <main className="min-h-[100dvh] bg-gradient-to-b from-black via-neutral-950 to-black text-white overflow-hidden">
       
+      {/* CSS for Smooth Ticker Animation */}
+      <style jsx global>{`
+        @keyframes scroll {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-scroll {
+          animation: scroll 30s linear infinite;
+        }
+      `}</style>
+
       {/* Enhanced gradient background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-orange-500/20 rounded-full blur-[120px] animate-pulse"></div>
@@ -133,7 +184,7 @@ export default function HomePage() {
             <Link href="/login" className="text-gray-400 hover:text-white font-medium transition-colors text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2">Log In</Link>
             <button 
               onClick={handleStartTrial}
-              className="px-3 sm:px-5 py-2 sm:py-2.5 cursor-pointer bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transform hover:-translate-y-0.5 transition-all whitespace-nowrap"
+              className="px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transform hover:-translate-y-0.5 transition-all whitespace-nowrap"
             >
               Get Started
             </button>
@@ -142,7 +193,7 @@ export default function HomePage() {
       </header>
       
       {/* Hero Section */}
-      <section className="relative flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 pt-20 sm:pt-24 pb-12 sm:pb-16">
+      <section className="relative flex flex-col items-center justify-center min-h-[90vh] px-4 sm:px-6 pt-20 sm:pt-24 pb-12 sm:pb-16">
         <motion.div 
           initial="hidden"
           animate="visible"
@@ -206,7 +257,46 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* ===== Stats Section ===== */}
+      {/* --- BRAND TICKER SECTION (OFFICIAL LOGOS) --- */}
+      <section className="py-10 border-t border-white/[0.05] bg-white/[0.01]">
+        <div className="max-w-7xl mx-auto px-4">
+          <p className="text-center text-xs font-semibold text-gray-500 uppercase tracking-widest mb-8">Powered by industry-leading technology</p>
+          
+          <div className="relative w-full overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
+            <div className="flex w-max animate-scroll">
+              {/* First Copy */}
+              <div className="flex items-center gap-16 pr-16">
+                {brands.map((brand, i) => (
+                  <div key={i} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group cursor-default">
+                    <brand.icon className="w-6 h-6 sm:w-8 sm:h-8 opacity-50 group-hover:opacity-100 transition-opacity" />
+                    <span className="text-lg sm:text-xl font-semibold opacity-50 group-hover:opacity-100 transition-opacity">{brand.name}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Duplicate Copy for Infinite Loop */}
+              <div className="flex items-center gap-16 pr-16">
+                {brands.map((brand, i) => (
+                  <div key={`dup-${i}`} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group cursor-default">
+                    <brand.icon className="w-6 h-6 sm:w-8 sm:h-8 opacity-50 group-hover:opacity-100 transition-opacity" />
+                    <span className="text-lg sm:text-xl font-semibold opacity-50 group-hover:opacity-100 transition-opacity">{brand.name}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Triplicate Copy to ensure no gaps on wide screens */}
+              <div className="flex items-center gap-16 pr-16">
+                {brands.map((brand, i) => (
+                  <div key={`trip-${i}`} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group cursor-default">
+                    <brand.icon className="w-6 h-6 sm:w-8 sm:h-8 opacity-50 group-hover:opacity-100 transition-opacity" />
+                    <span className="text-lg sm:text-xl font-semibold opacity-50 group-hover:opacity-100 transition-opacity">{brand.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
       <section className="py-16 sm:py-20 lg:py-24 border-y border-white/[0.08] bg-gradient-to-b from-white/[0.02] to-transparent backdrop-blur-sm relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px]"></div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative">
@@ -232,15 +322,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ===== Features Section ===== */}
+      {/* Features Section */}
       <section id="features" className="py-20 sm:py-24 lg:py-32 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            className="text-center mb-16 sm:mb-20 lg:mb-24"
+             initial="hidden"
+             whileInView="visible"
+             viewport={{ once: true }}
+             variants={fadeInUp}
+             className="text-center mb-16 sm:mb-20 lg:mb-24"
           >
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight px-4">
               Everything you need to
@@ -280,7 +370,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How It Works Section  */}
+      {/* How It Works Section */}
       <section id="how-it-works" className="py-20 sm:py-24 lg:py-32 bg-gradient-to-b from-white/[0.02] to-transparent backdrop-blur-sm border-y border-white/[0.08] relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px]"></div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative">
@@ -301,7 +391,7 @@ export default function HomePage() {
               { num: '02', title: 'Generate Content', desc: 'Enter a topic and watch AI create engaging posts tailored to your audience', icon: Sparkles },
               { num: '03', title: 'Publish & Analyze', desc: 'Schedule posts and track performance with detailed analytics', icon: TrendingUp }
             ].map((step, i) => (
-              <div key={i} className="relative">
+              <motion.div key={i} variants={fadeInUp} className="relative">
                 <div className="bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-md p-6 sm:p-7 lg:p-8 rounded-2xl border border-white/[0.08] hover:border-orange-500/30 transition-all duration-300 h-full hover:shadow-2xl hover:shadow-orange-500/10 group">
                   <div className="w-14 h-14 sm:w-15 sm:h-15 lg:w-16 lg:h-16 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-2xl shadow-orange-500/30 relative z-10 group-hover:scale-110 transition-transform">
                     <step.icon className="w-7 h-7 sm:w-7.5 sm:h-7.5 lg:w-8 lg:h-8 text-white" />
@@ -310,22 +400,21 @@ export default function HomePage() {
                   <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4 group-hover:text-white transition-colors">{step.title}</h3>
                   <p className="text-gray-400 leading-relaxed font-light text-sm sm:text-base">{step.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-
       {/* Final CTA Section */}
       <section className="py-20 sm:py-24 lg:py-32 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-pink-500/10 to-red-500/10 blur-3xl"></div>
         <motion.div 
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={staggerContainer}
-          className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10"
+           initial="hidden"
+           whileInView="visible"
+           viewport={{ once: true }}
+           variants={staggerContainer}
+           className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10"
         >
           <motion.h2 variants={fadeInUp} className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
             Ready to create
