@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react"; // Added useRef
+import { useState, useEffect, useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -33,7 +33,6 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // 1. New Ref to track if we are currently signing out
   const isSigningOut = useRef(false);
 
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -90,12 +89,9 @@ export default function Sidebar() {
 
     checkAuth();
 
-    // 2. Updated Listener: Checks isSigningOut before updating UI
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!mounted) return;
       
-      // If we are in the middle of a manual sign-out, STOP here.
-      // This prevents the UI from flipping to "Guest" before the redirect happens.
       if (isSigningOut.current) return;
 
       if (session?.user) {
@@ -116,7 +112,6 @@ export default function Sidebar() {
   }, [supabase, router]);
 
   const handleSignOut = async () => {
-    // 3. Set flag to TRUE immediately
     isSigningOut.current = true;
     
     await supabase.auth.signOut();
@@ -154,26 +149,25 @@ export default function Sidebar() {
           h-[100dvh]
           bg-gradient-to-b from-neutral-950 via-neutral-950 to-black
           border-r border-neutral-800/50 text-white flex flex-col transition-all duration-300 z-40
-          ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          ${isMobileOpen ? "translate-x-0 w-[280px]" : "-translate-x-full lg:translate-x-0"}
           ${isCollapsed ? "lg:w-[85px]" : "w-[280px] lg:w-[280px]"}
         `}
       >
-        {/* Logo + Collapse Button */}
-        <div
-          className={`px-6 py-5 border-b border-neutral-800/50 flex items-center ${
-            isCollapsed ? "justify-center px-4" : "justify-between"
+        {/* Logo + Close Button (Mobile) / Collapse Button (Desktop) */}
+        <div className={`px-6 py-5 border-b border-neutral-800/50 flex items-center flex-shrink-0 ${
+            isCollapsed && !isMobileOpen ? "justify-center px-4" : "justify-between"
           }`}
         >
           <Link
             href="/"
             className={`flex items-center gap-3 transition-all duration-300 ${
-              isCollapsed ? "w-0 opacity-0 overflow-hidden" : ""
+              isCollapsed && !isMobileOpen ? "w-0 opacity-0 overflow-hidden" : ""
             }`}
           >
-            <div className="w-11 h-11 bg-gradient-to-br from-orange-500 via-orange-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20">
+            <div className="w-11 h-11 bg-gradient-to-br from-orange-500 via-orange-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
               <LayoutDashboard className="w-5 h-5 text-white" />
             </div>
-            {!isCollapsed && (
+            {(!isCollapsed || isMobileOpen) && (
               <div>
                 <span className="text-lg font-bold">ContentAI</span>
                 <span className="block text-[10px] text-neutral-500 uppercase">Pro Studio</span>
@@ -184,23 +178,23 @@ export default function Sidebar() {
           {/* Desktop Collapse */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex items-center justify-center w-9 h-9 rounded-xl hover:bg-neutral-800/50 border border-transparent hover:border-neutral-700/50 text-neutral-500 hover:text-white transition-all"
+            className="hidden lg:flex items-center justify-center w-9 h-9 rounded-xl hover:bg-neutral-800/50 border border-transparent hover:border-neutral-700/50 text-neutral-500 hover:text-white transition-all flex-shrink-0"
           >
-            {isCollapsed ? <ChevronRight /> : <ChevronLeft />}
+            {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
           </button>
 
           {/* Mobile Close Button */}
           <button
             onClick={() => setIsMobileOpen(false)}
-            className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-neutral-800/50 hover:bg-neutral-800 text-white transition-all border border-neutral-700/50"
+            className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-neutral-800/50 hover:bg-neutral-800 text-white transition-all border border-neutral-700/50 flex-shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-800">
-          {!isCollapsed && (
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto overflow-x-hidden scrollbar-hide">
+          {(!isCollapsed || isMobileOpen) && (
             <div className="px-3 py-2 mb-4">
               <span className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
                 Workspace
@@ -218,7 +212,7 @@ export default function Sidebar() {
                   onClick={() => setIsMobileOpen(false)}
                   className={`
                     flex items-center gap-4 px-4 py-3 rounded-xl transition-all
-                    ${isCollapsed ? "justify-center" : ""}
+                    ${isCollapsed && !isMobileOpen ? "justify-center" : ""}
                     ${
                       isActive
                         ? "bg-gradient-to-r from-orange-500 to-pink-600 text-white shadow-lg shadow-orange-500/25"
@@ -226,16 +220,16 @@ export default function Sidebar() {
                     }
                   `}
                 >
-                  <item.icon className="w-5 h-5" />
-                  {!isCollapsed && <span className="font-medium text-[15px]">{item.name}</span>}
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  {(!isCollapsed || isMobileOpen) && <span className="font-medium text-[15px]">{item.name}</span>}
 
-                  {!isCollapsed && isActive && (
-                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></div>
+                  {(!isCollapsed || isMobileOpen) && isActive && (
+                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white flex-shrink-0"></div>
                   )}
                 </Link>
 
-                {isCollapsed && (
-                  <span className="absolute left-full ml-6 px-4 py-2 text-sm bg-neutral-800 text-white rounded-xl opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all shadow-xl border border-neutral-700/50">
+                {isCollapsed && !isMobileOpen && (
+                  <span className="absolute left-full ml-6 px-4 py-2 text-sm bg-neutral-800 text-white rounded-xl opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all shadow-xl border border-neutral-700/50 whitespace-nowrap z-50">
                     {item.name}
                   </span>
                 )}
@@ -245,12 +239,12 @@ export default function Sidebar() {
         </nav>
 
         {/* User Section */}
-        <div className="p-4 border-t border-neutral-800/50 space-y-3">
-          {!isCollapsed && !loading && (
+        <div className="p-4 border-t border-neutral-800/50 space-y-3 flex-shrink-0">
+          {(!isCollapsed || isMobileOpen) && !loading && (
             <div className="bg-neutral-900/50 rounded-xl p-4 border border-neutral-800/50 mb-2">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-bold text-neutral-500 uppercase">Available Credits</span>
-                <div className="p-1 bg-yellow-500/10 rounded-full">
+                <div className="p-1 bg-yellow-500/10 rounded-full flex-shrink-0">
                   <Zap className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                 </div>
               </div>
@@ -272,27 +266,27 @@ export default function Sidebar() {
           {/* User card */}
           <div
             className={`flex items-center gap-3 px-3 py-3 rounded-xl bg-neutral-900/40 border border-neutral-800/50 hover:bg-neutral-800/40 transition-all ${
-              isCollapsed ? "justify-center" : ""
+              isCollapsed && !isMobileOpen ? "justify-center" : ""
             }`}
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center text-white font-bold">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center text-white font-bold flex-shrink-0">
               {loading ? "…" : isGuest ? <User className="w-5 h-5" /> : initial}
             </div>
 
-            {!isCollapsed && (
-              <div className="flex-1 overflow-hidden">
+            {(!isCollapsed || isMobileOpen) && (
+              <div className="flex-1 overflow-hidden min-w-0">
                 <p className="text-sm font-semibold truncate">{loading ? "Loading..." : email}</p>
 
                 {!loading && isGuest && (
                   <p className="text-[11px] text-neutral-500 truncate flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse flex-shrink-0"></span>
                     Guest Session
                   </p>
                 )}
 
                 {!loading && !isGuest && (
                   <p className="text-[11px] text-green-500 truncate flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></span>
                     Active
                   </p>
                 )}
@@ -301,13 +295,13 @@ export default function Sidebar() {
           </div>
 
           {/* Upgrade button */}
-          {!loading && isGuest && !isCollapsed && (
+          {!loading && isGuest && (!isCollapsed || isMobileOpen) && (
             <Link 
               href="/dashboard/subscriptions" 
               onClick={() => setIsMobileOpen(false)}
             >
               <button className="w-full flex cursor-pointer items-center justify-center gap-2 text-sm font-semibold py-3 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl hover:scale-[1.02] transition-all shadow-lg shadow-amber-500/20">
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-4 h-4 flex-shrink-0" />
                 Upgrade to Pro
               </button>
             </Link>
@@ -318,15 +312,26 @@ export default function Sidebar() {
             <button
               onClick={handleSignOut}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800/40 border border-transparent hover:border-neutral-700/50 transition-all ${
-                isCollapsed ? "justify-center" : ""
+                isCollapsed && !isMobileOpen ? "justify-center" : ""
               }`}
             >
-              <LogOut className="w-5 h-5" />
-              {!isCollapsed && <span className="text-sm cursor-pointer font-medium">Sign Out</span>}
+              <LogOut className="w-5 h-5 flex-shrink-0" />
+              {(!isCollapsed || isMobileOpen) && <span className="text-sm cursor-pointer font-medium">Sign Out</span>}
             </button>
           )}
         </div>
       </aside>
+
+      {/* Custom CSS to hide scrollbar */}
+      <style jsx global>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </>
   );
 }
