@@ -108,7 +108,7 @@ export default function Sidebar() {
       <aside
         className={`
           fixed lg:relative top-0 left-0 
-          h-[100svh] min-h-screen
+          h-[100svh]
           bg-gradient-to-b from-neutral-950 via-neutral-950 to-black
           border-r border-neutral-800/50 text-white flex flex-col transition-all duration-300 z-40
           ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
