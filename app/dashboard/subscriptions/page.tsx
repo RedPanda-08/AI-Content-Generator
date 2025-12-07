@@ -81,121 +81,113 @@ export default function SubscriptionPage() {
   ];
 
   return (
-    // FIX: Added 'w-full', 'overflow-x-hidden', and Global Styles to hide scrollbar
-    <div className="w-full max-w-[1400px] mx-auto p-6 lg:p-10 pb-24 overflow-x-hidden">
-      
-      {/* Global Style to Hide Scrollbar */}
-      <style jsx global>{`
-        ::-webkit-scrollbar {
-          display: none;
-        }
-        * {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
+    <div className="w-full h-screen overflow-y-auto custom-scrollbar">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8 lg:py-10 pb-16 sm:pb-20 lg:pb-24">
+        
+        {/* Header */}
+        <div className="text-center mb-12 sm:mb-16 space-y-3 sm:space-y-4 pl-12 sm:pl-0">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">Choose Your Plan</h1>
+          <p className="text-base sm:text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto px-4">
+            Unlock the full power of ContentAI. Upgrade anytime as your content needs grow.
+          </p>
+        </div>
 
-      {/* Header */}
-      <div className="text-center mb-16 space-y-4">
-        <h1 className="text-4xl md:text-5xl font-bold text-white">Choose Your Plan</h1>
-        <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-          Unlock the full power of ContentAI. Upgrade anytime as your content needs grow.
-        </p>
-      </div>
-
-      {/* Pricing Grid */}
-      {/* Added padding-top (pt-10) to ensure the 'Most Popular' badge doesn't get clipped */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 pt-10 px-2">
-        {tiers.map((tier) => (
-          <div
-            key={tier.name}
-            className={`
-              rounded-3xl p-8 border flex flex-col relative
-              transition-all duration-300
-              ${tier.color}
-              ${
-                tier.popular
-                  ? 'xl:-translate-y-6 xl:scale-[1.05] z-20 order-first xl:order-none'
-                  : 'hover:border-zinc-700'
-              }
-            `}
-          >
-            {/* Popular Badge */}
-            {tier.popular && (
-              <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-500 to-pink-600 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider shadow-lg z-30">
-                Most Popular
-              </div>
-            )}
-
-            {/* Icon + Title */}
-            <div className="mb-8">
-              <div
-                className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${
-                  tier.popular ? 'bg-orange-500/10' : 'bg-zinc-800/50'
-                }`}
-              >
-                <tier.icon
-                  className={`w-6 h-6 ${
-                    tier.popular ? 'text-orange-500' : 'text-zinc-400'
-                  }`}
-                />
-              </div>
-
-              <h3 className="text-xl font-bold text-white mb-2">{tier.name}</h3>
-              <p className="text-zinc-400 text-sm min-h-[40px]">{tier.description}</p>
-            </div>
-
-            {/* Price */}
-            <div className="mb-8">
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-white">{tier.price}</span>
-                {tier.period && <span className="text-zinc-500">{tier.period}</span>}
-              </div>
-            </div>
-
-            {/* Features */}
-            <ul className="space-y-4 mb-8 flex-1">
-              {tier.features.map((feature) => (
-                <li
-                  key={feature}
-                  className="flex items-start gap-3 text-sm text-zinc-300"
-                >
-                  <Check
-                    className={`w-5 h-5 flex-shrink-0 ${
-                      tier.popular ? 'text-orange-500' : 'text-zinc-500'
-                    }`}
-                  />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            {/* Button */}
-            <button
-              onClick={() => handleUpgrade(tier.name)}
-              disabled={tier.current || loadingTier === tier.name}
+        {/* Pricing Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8 pt-9 sm:pt-10 px-2">
+          {tiers.map((tier) => (
+            <div
+              key={tier.name}
               className={`
-                w-full py-4 rounded-xl font-semibold text-sm transition-all
-                flex items-center justify-center gap-2 cursor-pointer
-                ${tier.btnColor}
-                ${tier.current ? 'opacity-50 cursor-default' : 'transform hover:scale-[1.02] active:scale-95'}
+                rounded-2xl sm:rounded-3xl p-6 sm:p-8 border flex flex-col relative
+                transition-all duration-300
+                ${tier.color}
+                ${
+                  tier.popular
+                    ? 'md:col-span-2 xl:col-span-1 xl:-translate-y-6 xl:scale-[1.05] z-20 md:order-first xl:order-none'
+                    : 'hover:border-zinc-700'
+                }
               `}
             >
-              {loadingTier === tier.name ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : tier.current ? (
-                'Current Plan'
-              ) : (
-                `Upgrade to ${tier.name}`
+              {/* Popular Badge */}
+              {tier.popular && (
+                <div className="absolute -top-4 sm:-top-5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-orange-500 to-pink-600 text-white text-[10px] sm:text-xs font-bold px-3 sm:px-4 py-1 sm:py-1.5 rounded-full uppercase tracking-wider shadow-lg z-30">
+                  Most Popular
+                </div>
               )}
-            </button>
-          </div>
-        ))}
-      </div>
 
-      {/* Footer Section */}
-      <div className="mt-20 text-center border-t border-zinc-800 pt-12">
-        <p className="text-zinc-500 text-sm">Secure payments powered by Stripe. Cancel anytime.</p>
+              {/* Icon + Title */}
+              <div className="mb-6 sm:mb-8">
+                <div
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 ${
+                    tier.popular ? 'bg-orange-500/10' : 'bg-zinc-800/50'
+                  }`}
+                >
+                  <tier.icon
+                    className={`w-5 h-5 sm:w-6 sm:h-6 ${
+                      tier.popular ? 'text-orange-500' : 'text-zinc-400'
+                    }`}
+                  />
+                </div>
+
+                <h3 className="text-lg sm:text-xl font-bold text-white mb-2">{tier.name}</h3>
+                <p className="text-zinc-400 text-xs sm:text-sm min-h-[35px] sm:min-h-[40px]">{tier.description}</p>
+              </div>
+
+              {/* Price */}
+              <div className="mb-6 sm:mb-8">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl sm:text-4xl font-bold text-white">{tier.price}</span>
+                  {tier.period && <span className="text-sm sm:text-base text-zinc-500">{tier.period}</span>}
+                </div>
+              </div>
+
+              {/* Features */}
+              <ul className="space-y-3 sm:space-y-4 mb-6 sm:mb-8 flex-1">
+                {tier.features.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-start gap-2 sm:gap-3 text-xs sm:text-sm text-zinc-300"
+                  >
+                    <Check
+                      className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5 ${
+                        tier.popular ? 'text-orange-500' : 'text-zinc-500'
+                      }`}
+                    />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* Button */}
+              <button
+                onClick={() => handleUpgrade(tier.name)}
+                disabled={tier.current || loadingTier === tier.name}
+                className={`
+                  w-full py-3 sm:py-4 rounded-xl font-semibold text-xs sm:text-sm transition-all
+                  flex items-center justify-center gap-2 cursor-pointer
+                  ${tier.btnColor}
+                  ${tier.current ? 'opacity-50 cursor-default' : 'transform hover:scale-[1.02] active:scale-95'}
+                `}
+              >
+                {loadingTier === tier.name ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : tier.current ? (
+                  'Current Plan'
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">Upgrade to {tier.name}</span>
+                    <span className="sm:hidden">Get {tier.name}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer Section */}
+        <div className="mt-12 sm:mt-16 lg:mt-20 text-center border-t border-zinc-800 pt-8 sm:pt-12">
+          <p className="text-zinc-500 text-xs sm:text-sm px-4">Secure payments powered by Stripe. Cancel anytime.</p>
+        </div>
       </div>
     </div>
   );
