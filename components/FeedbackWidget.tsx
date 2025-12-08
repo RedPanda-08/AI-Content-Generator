@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { usePathname } from 'next/navigation'; // Import hook to check current page
+import { usePathname } from 'next/navigation';
 import { MessageSquare, X, Send, Loader2, ThumbsUp, Star, User, Briefcase } from 'lucide-react';
 import { useSupabase } from './SupabaseProvider';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +16,7 @@ interface SupabaseContextType {
 }
 
 export default function FeedbackWidget() {
-  const pathname = usePathname(); // Get current path
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   
@@ -32,9 +32,35 @@ export default function FeedbackWidget() {
   const { session, supabase } = (useSupabase() as unknown as SupabaseContextType) || {};
   const isGenerator = pathname === '/dashboard';
   
+  // --- POSITIONING LOGIC ---
+  // Mobile & Tablet (< 1024px): 
+  // Changed 'top-20' -> 'top-4'. This aligns it parallel to the hamburger icon (assuming standard header height).
+  // Desktop (>= 1024px): Bottom Right.
   const positionClasses = isGenerator 
-    ? 'bottom-40 right-4 sm:bottom-8 sm:right-8' 
+    ? 'top-4 right-4 lg:top-auto lg:bottom-8 lg:right-8' 
     : 'bottom-4 right-4 sm:bottom-6 sm:right-6';
+
+  // --- FLEX DIRECTION ---
+  // Mobile/Tablet: flex-col-reverse (Button Top, Popup expands DOWN)
+  // Desktop: flex-col (Button Bottom, Popup expands UP)
+  const flexDirection = isGenerator
+    ? 'flex-col-reverse lg:flex-col'
+    : 'flex-col';
+
+  // --- MARGINS ---
+  // Mobile/Tablet: mt-3 (Gap below button for popup)
+  // Desktop: mb-3 (Gap above button for popup)
+  const popupMargins = isGenerator
+    ? 'mt-3 lg:mt-0 lg:mb-3'
+    : 'mb-3';
+
+  // --- TOOLTIP POSITION ---
+  // Mobile/Tablet: Top-full (Appears below button)
+  // Desktop: Bottom-full (Appears above button)
+  const tooltipPosition = isGenerator
+    ? 'top-full mt-2 lg:top-auto lg:bottom-full lg:mb-2 lg:mt-0 slide-in-from-top-2 lg:slide-in-from-bottom-2'
+    : 'bottom-full mb-2 slide-in-from-bottom-2';
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +105,8 @@ export default function FeedbackWidget() {
   };
 
   return (
-    <div className={`fixed z-30 flex flex-col items-end transition-all duration-300 ${positionClasses}`}>
+    // Changed z-30 to z-50 to ensure it sits on top of any navbar elements
+    <div className={`fixed z-50 flex items-end transition-all duration-300 ${positionClasses} ${flexDirection}`}>
       
       {/* POPUP FORM CONTAINER */}
       <AnimatePresence>
@@ -89,7 +116,10 @@ export default function FeedbackWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="mb-3 w-[calc(100vw-2rem)] sm:w-80 bg-zinc-950 border border-zinc-800/80 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden backdrop-blur-xl max-h-[60vh] overflow-y-auto"
+            className={`
+                w-[calc(100vw-2rem)] sm:w-80 bg-zinc-950 border border-zinc-800/80 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden backdrop-blur-xl max-h-[60vh] overflow-y-auto
+                ${popupMargins}
+            `}
           >
             {success ? (
               <div className="h-64 flex flex-col items-center justify-center p-6 text-center bg-zinc-950">
@@ -179,7 +209,10 @@ export default function FeedbackWidget() {
       {/* FLOATING ACTION BUTTON */}
       <div className="relative">
         {showTooltip && !isOpen && (
-            <div className="absolute bottom-full right-0 mb-2 px-2.5 py-1 bg-zinc-900 border border-zinc-800 text-white text-[10px] font-medium rounded-lg whitespace-nowrap shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200 hidden sm:block">
+            <div className={`
+                absolute right-0 px-2.5 py-1 bg-zinc-900 border border-zinc-800 text-white text-[10px] font-medium rounded-lg whitespace-nowrap shadow-xl animate-in fade-in duration-200 hidden sm:block
+                ${tooltipPosition}
+            `}>
                 Share Feedback
             </div>
         )}

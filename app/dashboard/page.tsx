@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { Send, Bot, Sparkles, User, Copy, Check, BarChart2, Loader2, CheckCircle2, AlertCircle, Linkedin, Twitter, Instagram } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Send, Bot, Sparkles, User, Copy, Check, BarChart2, Loader2, Linkedin, Twitter, Instagram } from 'lucide-react';
 import Textarea from 'react-textarea-autosize'; 
 import { useSupabase } from '../../components/SupabaseProvider'; 
 
@@ -16,7 +16,6 @@ export default function GeneratorPage() {
   const [isReady, setIsReady] = useState(false);
   const user = session?.user;
   const isGuest = user?.is_anonymous;
-  const [showBanner, setShowBanner] = useState(true);
 
   const [prompt, setPrompt] = useState('');
   const [platform, setPlatform] = useState('linkedin');
@@ -29,6 +28,9 @@ export default function GeneratorPage() {
   
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Auto-scroll ref
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (initialized) {
@@ -45,10 +47,12 @@ export default function GeneratorPage() {
     return () => clearTimeout(timer);
   }, [initialized, context]);
 
+  // Scroll to bottom when content generates
   useEffect(() => {
-    if (isReady && isGuest) {
+    if (generatedContent || isGenerating) {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [isReady, isGuest]);
+  }, [generatedContent, isGenerating]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -143,14 +147,15 @@ export default function GeneratorPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-[100svh] max-w-4xl mx-auto px-3 sm:px-4 py-4 sm:py-6 relative">
+    // FIX 1: Keep global pt-16 (clears standard navbar)
+    <div className="flex flex-col h-[100dvh] max-w-4xl mx-auto px-4 pt-16 relative">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
-
       {/* MAIN CONTENT AREA */}
-      <div className="flex-grow overflow-y-auto pr-2 sm:pr-4 no-scrollbar">
+      <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar">
+         <div className="pb-4 min-h-full">
         {!submittedPrompt ? (
             <div className="text-center py-8 sm:py-12 px-2">
               <div className="inline-flex p-4 sm:p-6 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 shadow-lg shadow-orange-500/30">
@@ -178,7 +183,10 @@ export default function GeneratorPage() {
              </div>
            </div>
         ) : (
-          <div className="space-y-6 sm:space-y-8 pb-4">
+          /* FIX 2: Added 'pt-12 sm:pt-0' to this container. 
+             This pushes the generated content down ONLY on mobile/tablets to clear 
+             the hamburger icon and the Feedback Widget (which is likely Top-Right). */
+          <div className="space-y-6 sm:space-y-8 pb-4 pt-12 sm:pt-0">
             <div className="flex gap-2.5 sm:gap-3 md:gap-4 items-start">
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
                 <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
@@ -238,7 +246,7 @@ export default function GeneratorPage() {
                     </div>
                   </div>
                   {(isAnalyzing || analysis) && (
-                     <div className="mt-3 sm:mt-4 p-4 sm:p-5 bg-gradient-to-br from-blue-900/20 to-purple-900/10 border border-blue-500/20 rounded-xl sm:rounded-2xl animate-fadeIn shadow-lg">
+                      <div className="mt-3 sm:mt-4 p-4 sm:p-5 bg-gradient-to-br from-blue-900/20 to-purple-900/10 border border-blue-500/20 rounded-xl sm:rounded-2xl animate-fadeIn shadow-lg">
                         <div className="flex items-center gap-2 mb-2 sm:mb-3">
                           <BarChart2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" />
                           <h4 className="text-blue-300 text-xs sm:text-sm font-bold tracking-wide">Content Analysis</h4>
@@ -273,16 +281,19 @@ export default function GeneratorPage() {
                             })}
                           </div>
                         )}
-                     </div>
+                      </div>
                   )}
                 </div>
               )}
             </div>
           </div>
         )}
+        <div ref={bottomRef} />
+      </div>
       </div>
 
-      <div className="mt-4 sm:mt-6 flex-shrink-0">
+      {/* INPUT AREA */}
+      <div className="mt-4 flex-shrink-0 pb-6 sm:pb-6">
         <div className="relative bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl focus-within:border-orange-500/50 transition-colors">
           
           {/* Platform Selector Header */}
