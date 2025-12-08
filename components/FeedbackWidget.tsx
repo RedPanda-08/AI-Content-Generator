@@ -137,7 +137,7 @@ export default function FeedbackWidget() {
                         <User className="absolute left-3.5 top-2.5 w-4 h-4 text-zinc-500 group-focus-within:text-orange-500 transition-colors duration-300" />
                         <input 
                             type="text"
-                            placeholder="Your Name (Optional)"
+                            placeholder="Your Name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             className="w-full bg-zinc-900/50 hover:bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-3 text-xs text-white placeholder-zinc-600 focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/10 focus:outline-none transition-all duration-200"
@@ -148,7 +148,7 @@ export default function FeedbackWidget() {
                         <Briefcase className="absolute left-3.5 top-2.5 w-4 h-4 text-zinc-500 group-focus-within:text-orange-500 transition-colors duration-300" />
                         <input 
                             type="text"
-                            placeholder="Role / Company (Optional)"
+                            placeholder="Role / Company"
                             value={role}
                             onChange={(e) => setRole(e.target.value)}
                             className="w-full bg-zinc-900/50 hover:bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 pl-10 pr-3 text-xs text-white placeholder-zinc-600 focus:border-orange-500/50 focus:ring-2 focus:ring-orange-500/10 focus:outline-none transition-all duration-200"
