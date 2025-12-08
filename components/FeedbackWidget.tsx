@@ -33,7 +33,7 @@ export default function FeedbackWidget() {
   const isGenerator = pathname === '/dashboard';
   
   const positionClasses = isGenerator 
-    ? 'bottom-36 right-4 sm:bottom-8 sm:right-8' 
+    ? 'bottom-40 right-4 sm:bottom-8 sm:right-8' 
     : 'bottom-4 right-4 sm:bottom-6 sm:right-6';
 
   const handleSubmit = async (e: React.FormEvent) => {
