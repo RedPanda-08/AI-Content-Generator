@@ -262,7 +262,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4">
           <p className="text-center text-xs font-semibold text-gray-500 uppercase tracking-widest mb-8">Powered by industry-leading technology</p>
           
-          <div className="relative w-full overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
+          <div className="relative w-full overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_32px,_black_calc(100%-32px),transparent_100%)] sm:[mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
             <div className="flex w-max animate-scroll">
               {/* First Copy */}
               <div className="flex items-center gap-16 pr-16">
