@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation'; // Import hook to check current page
 import { MessageSquare, X, Send, Loader2, ThumbsUp, Star, User, Briefcase } from 'lucide-react';
 import { useSupabase } from './SupabaseProvider';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,9 +16,11 @@ interface SupabaseContextType {
 }
 
 export default function FeedbackWidget() {
+  const pathname = usePathname(); // Get current path
   const [isOpen, setIsOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   
+  // Form State
   const [rating, setRating] = useState(5);
   const [message, setMessage] = useState('');
   const [name, setName] = useState('');
@@ -27,6 +30,11 @@ export default function FeedbackWidget() {
   const [success, setSuccess] = useState(false);
 
   const { session, supabase } = (useSupabase() as unknown as SupabaseContextType) || {};
+  const isGenerator = pathname === '/dashboard';
+  
+  const positionClasses = isGenerator 
+    ? 'bottom-36 right-4 sm:bottom-8 sm:right-8' 
+    : 'bottom-4 right-4 sm:bottom-6 sm:right-6';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,8 +79,9 @@ export default function FeedbackWidget() {
   };
 
   return (
-    <div className="fixed z-30 flex flex-col items-end right-4 bottom-40 sm:bottom-6 sm:right-6">
+    <div className={`fixed z-30 flex flex-col items-end transition-all duration-300 ${positionClasses}`}>
       
+      {/* POPUP FORM CONTAINER */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
@@ -80,7 +89,7 @@ export default function FeedbackWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="mb-4 w-[calc(100vw-2rem)] sm:w-80 bg-zinc-950 border border-zinc-800/80 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden backdrop-blur-xl max-h-[60vh] overflow-y-auto"
+            className="mb-3 w-[calc(100vw-2rem)] sm:w-80 bg-zinc-950 border border-zinc-800/80 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden backdrop-blur-xl max-h-[60vh] overflow-y-auto"
           >
             {success ? (
               <div className="h-64 flex flex-col items-center justify-center p-6 text-center bg-zinc-950">
@@ -117,7 +126,7 @@ export default function FeedbackWidget() {
                       className="focus:outline-none transition-transform hover:scale-110 active:scale-95 cursor-pointer"
                     >
                       <Star 
-                        className={`w-6 h-6 transition-colors duration-200 ${star <= rating ? 'fill-orange-500 text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.3)]' : 'text-zinc-700 hover:text-zinc-600'}`} 
+                        className={`w-5 h-5 transition-colors duration-200 ${star <= rating ? 'fill-orange-500 text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.3)]' : 'text-zinc-700 hover:text-zinc-600'}`} 
                       />
                     </button>
                   ))}
@@ -167,9 +176,10 @@ export default function FeedbackWidget() {
         )}
       </AnimatePresence>
 
+      {/* FLOATING ACTION BUTTON */}
       <div className="relative">
         {showTooltip && !isOpen && (
-            <div className="absolute bottom-full right-0 mb-3 px-3 py-1.5 bg-zinc-900 border border-zinc-800 text-white text-xs font-medium rounded-lg whitespace-nowrap shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200 hidden sm:block">
+            <div className="absolute bottom-full right-0 mb-2 px-2.5 py-1 bg-zinc-900 border border-zinc-800 text-white text-[10px] font-medium rounded-lg whitespace-nowrap shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200 hidden sm:block">
                 Share Feedback
             </div>
         )}
@@ -178,14 +188,14 @@ export default function FeedbackWidget() {
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
             className={`
-            flex items-center justify-center h-12 w-12 rounded-full shadow-2xl transition-all duration-300 cursor-pointer border border-white/10
+            flex items-center justify-center h-11 w-11 rounded-full shadow-2xl transition-all duration-300 cursor-pointer border border-white/10
             ${isOpen 
                 ? 'bg-zinc-800 text-white rotate-90 hover:bg-zinc-700' 
                 : 'bg-gradient-to-r from-orange-500 to-pink-600 text-white hover:scale-110 hover:shadow-orange-500/40'
             }
             `}
         >
-            {isOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
+            {isOpen ? <X className="w-5 h-5" /> : <MessageSquare className="w-5 h-5" />}
         </button>
       </div>
     </div>
