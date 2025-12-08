@@ -1,8 +1,9 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react'; // Removed useRef
 import { Send, Bot, Sparkles, User, Copy, Check, BarChart2, Loader2, Linkedin, Twitter, Instagram } from 'lucide-react';
 import Textarea from 'react-textarea-autosize'; 
 import { useSupabase } from '../../components/SupabaseProvider'; 
+
 
 interface SupabaseContextType {
   session: { user?: { is_anonymous?: boolean }; access_token?: string } | null;
@@ -15,7 +16,6 @@ export default function GeneratorPage() {
   
   const [isReady, setIsReady] = useState(false);
   const user = session?.user;
-  const isGuest = user?.is_anonymous;
 
   const [prompt, setPrompt] = useState('');
   const [platform, setPlatform] = useState('linkedin');
@@ -29,8 +29,8 @@ export default function GeneratorPage() {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // Auto-scroll ref
-  const bottomRef = useRef<HTMLDivElement>(null);
+  // REMOVED: const bottomRef = useRef...
+  // REMOVED: The useEffect that triggered scrollIntoView
 
   useEffect(() => {
     if (initialized) {
@@ -46,13 +46,6 @@ export default function GeneratorPage() {
     }, 2000);
     return () => clearTimeout(timer);
   }, [initialized, context]);
-
-  // Scroll to bottom when content generates
-  useEffect(() => {
-    if (generatedContent || isGenerating) {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [generatedContent, isGenerating]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -147,12 +140,12 @@ export default function GeneratorPage() {
   };
 
   return (
-    // FIX 1: Keep global pt-16 (clears standard navbar)
     <div className="flex flex-col h-[100dvh] max-w-4xl mx-auto px-4 pt-16 relative">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
+
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar">
          <div className="pb-4 min-h-full">
@@ -183,9 +176,6 @@ export default function GeneratorPage() {
              </div>
            </div>
         ) : (
-          /* FIX 2: Added 'pt-12 sm:pt-0' to this container. 
-             This pushes the generated content down ONLY on mobile/tablets to clear 
-             the hamburger icon and the Feedback Widget (which is likely Top-Right). */
           <div className="space-y-6 sm:space-y-8 pb-4 pt-12 sm:pt-0">
             <div className="flex gap-2.5 sm:gap-3 md:gap-4 items-start">
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
@@ -288,7 +278,7 @@ export default function GeneratorPage() {
             </div>
           </div>
         )}
-        <div ref={bottomRef} />
+        {/* REMOVED: <div ref={bottomRef} /> */}
       </div>
       </div>
 
