@@ -1,6 +1,6 @@
 import React from 'react';
 import Sidebar from '@/components/Sidebar';
-
+import FeedbackWidget from '@/components/FeedbackWidget';
 export default function DashboardLayout({
   children,
 }: {
@@ -10,6 +10,7 @@ export default function DashboardLayout({
     <div className="flex h-screen bg-[#131314] text-gray-200">
       <Sidebar />
       <main className="flex-1 flex flex-col overflow-hidden">
+        <FeedbackWidget/>
         {children}
       </main>
     </div>
