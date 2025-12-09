@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react'; // Removed useRef
+import { useState, useEffect } from 'react'; 
 import { Send, Bot, Sparkles, User, Copy, Check, BarChart2, Loader2, Linkedin, Twitter, Instagram } from 'lucide-react';
 import Textarea from 'react-textarea-autosize'; 
 import { useSupabase } from '../../components/SupabaseProvider'; 
@@ -29,8 +29,6 @@ export default function GeneratorPage() {
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // REMOVED: const bottomRef = useRef...
-  // REMOVED: The useEffect that triggered scrollIntoView
 
   useEffect(() => {
     if (initialized) {

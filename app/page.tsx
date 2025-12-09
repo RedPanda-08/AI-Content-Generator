@@ -7,7 +7,6 @@ import { useSupabase } from '../components/SupabaseProvider';
 import { Bot, Zap, BarChart2, Lightbulb, TrendingUp, Star, Sparkles, ArrowRight, Users, Clock, Target, Loader2, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-// --- Animation Variants ---
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
@@ -87,13 +86,18 @@ export default function HomePage() {
 
   const handleStartTrial = async () => {
     if (session?.user) {
-      router.push('/dashboard');
+      setStatus('redirecting');
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 800); 
       return;
     }
 
     try {
       setStatus('creating');
       
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       if (createGuestAccount) {
         await createGuestAccount();
       }
@@ -184,7 +188,8 @@ export default function HomePage() {
             <Link href="/login" className="text-gray-400 hover:text-white font-medium transition-colors text-xs sm:text-sm px-2 sm:px-4 py-1.5 sm:py-2">Log In</Link>
             <button 
               onClick={handleStartTrial}
-              className="px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transform hover:-translate-y-0.5 transition-all whitespace-nowrap"
+              disabled={status !== 'idle'}
+              className="px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 transform hover:-translate-y-0.5 transition-all whitespace-nowrap disabled:opacity-80 disabled:cursor-wait"
             >
               Get Started
             </button>
