@@ -111,7 +111,8 @@ export default function CalendarPage() {
 
   return (
     <div className="w-full min-h-[100svh] overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent hover:scrollbar-thumb-neutral-600">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 relative">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-22 pb-6 sm:py-6 relative">
+        
         {/* Success Toast */}
         {showSuccess && (
           <div className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50 animate-in fade-in slide-in-from-top-5 duration-300">
@@ -128,7 +129,7 @@ export default function CalendarPage() {
         )}
         
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8 pl-12 sm:pl-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2 sm:gap-3">
               <CalendarIcon className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500" />

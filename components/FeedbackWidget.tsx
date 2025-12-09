@@ -33,30 +33,23 @@ export default function FeedbackWidget() {
   const isGenerator = pathname === '/dashboard';
   
   // --- POSITIONING LOGIC ---
-  // Mobile & Tablet (< 1024px): 
-  // Changed 'top-20' -> 'top-4'. This aligns it parallel to the hamburger icon (assuming standard header height).
+  // Mobile & Tablet (< 1024px): Top Right (top-4 to align with hamburger icon)
   // Desktop (>= 1024px): Bottom Right.
   const positionClasses = isGenerator 
     ? 'top-4 right-4 lg:top-auto lg:bottom-8 lg:right-8' 
     : 'bottom-4 right-4 sm:bottom-6 sm:right-6';
 
   // --- FLEX DIRECTION ---
-  // Mobile/Tablet: flex-col-reverse (Button Top, Popup expands DOWN)
-  // Desktop: flex-col (Button Bottom, Popup expands UP)
   const flexDirection = isGenerator
     ? 'flex-col-reverse lg:flex-col'
     : 'flex-col';
 
   // --- MARGINS ---
-  // Mobile/Tablet: mt-3 (Gap below button for popup)
-  // Desktop: mb-3 (Gap above button for popup)
   const popupMargins = isGenerator
     ? 'mt-3 lg:mt-0 lg:mb-3'
     : 'mb-3';
 
   // --- TOOLTIP POSITION ---
-  // Mobile/Tablet: Top-full (Appears below button)
-  // Desktop: Bottom-full (Appears above button)
   const tooltipPosition = isGenerator
     ? 'top-full mt-2 lg:top-auto lg:bottom-full lg:mb-2 lg:mt-0 slide-in-from-top-2 lg:slide-in-from-bottom-2'
     : 'bottom-full mb-2 slide-in-from-bottom-2';
@@ -112,6 +105,7 @@ export default function FeedbackWidget() {
       <AnimatePresence>
         {isOpen && (
           <motion.div 
+            key="feedback-popup-modal" // ADDED KEY FOR STABILITY
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}

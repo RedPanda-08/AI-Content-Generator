@@ -25,8 +25,6 @@ export default function SettingsPage() {
     };
     fetchProfile();
   }, []); 
-
-  // --- UPDATED: Extracted save logic into a reusable function ---
   const performSave = async (name: string, tone: string, keywords: string) => {
     setMessage('');
     setIsSaving(true);
@@ -65,7 +63,7 @@ export default function SettingsPage() {
     setBrandTone('');
     setBrandKeywords('');
     await performSave('', '', ''); 
-    setMessage(' Brand Voice settings cleared successfully!'); 
+    setMessage('✅ Brand Voice settings cleared successfully!'); 
   };
 
   if (loading) {
@@ -77,8 +75,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="w-full min-h-[100svh] flex justify-center p-6 overflow-y-auto">
-        <div className="w-full max-w-2xl bg-gray-900/60 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-gray-800 my-8">
+    <div className="w-full min-h-[100svh] flex justify-center p-6 pt-24 sm:pt-6 overflow-y-auto">
+        <div className="w-full max-w-2xl bg-gray-900/60 backdrop-blur-lg rounded-2xl p-8 shadow-2xl border border-gray-800 my-auto sm:my-8 h-fit">
             <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-orange-400 to-pink-600 bg-clip-text text-transparent">
             ✨ Brand Voice Settings
             </h1>
@@ -92,7 +90,7 @@ export default function SettingsPage() {
                   type="text"
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-orange-500 focus:outline-none text-white"
                   placeholder="Enter your brand name" 
                 />
             </div>
@@ -104,7 +102,7 @@ export default function SettingsPage() {
                   type="text"
                   value={brandTone}
                   onChange={(e) => setBrandTone(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-pink-500 focus:outline-none"
+                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-pink-500 focus:outline-none text-white"
                   placeholder="e.g., Professional, Friendly, Casual"
                 />
             </div>
@@ -116,12 +114,12 @@ export default function SettingsPage() {
                   type="text"
                   value={brandKeywords}
                   onChange={(e) => setBrandKeywords(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                  className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 focus:ring-2 focus:ring-purple-500 focus:outline-none text-white"
                   placeholder="e.g., innovation, trust, speed (comma separated)"
                 />
             </div>
 
-            {/* --- UPDATED: Button Row --- */}
+            {/* --- Button Row --- */}
             <div className="flex flex-col sm:flex-row gap-4 mt-4">
               {/* Save Button */}
               <button
@@ -143,7 +141,7 @@ export default function SettingsPage() {
                       'Save Settings'
                   )}
               </button>
-              {/* NEW: Clear Button */}
+              {/* Clear Button */}
               <button
                   onClick={handleClear}
                   disabled={isSaving}
@@ -174,4 +172,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

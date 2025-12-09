@@ -59,9 +59,8 @@ export default function HistoryPage() {
 
   return (
     <div className="w-full min-h-[100svh] overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent hover:scrollbar-thumb-neutral-600">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Header */}
-        <div className="mb-6 sm:mb-8 pl-12 sm:pl-0">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-22 pb-6 sm:py-8">
+        <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Content History</h1>
           <p className="text-sm sm:text-base text-gray-400">View and manage your previously generated content</p>
         </div>
