@@ -1,11 +1,11 @@
 'use client';
-
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useSupabase } from '../components/SupabaseProvider';
 import { Bot, Zap, BarChart2, Lightbulb, TrendingUp, Star, Sparkles, ArrowRight, Users, Clock, Target, Loader2, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
+import TestimonialSection from '../components/TestimonialSection';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -125,7 +125,6 @@ export default function HomePage() {
     return <>{defaultText} <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>;
   };
 
-  // Logos for the ticker - Updated with Official Components
   const brands = [
     { name: "OpenAI", icon: OpenAILogo },
     { name: "Next.js", icon: NextJSLogo },
@@ -326,6 +325,7 @@ export default function HomePage() {
           </motion.div>
         </div>
       </section>
+      <TestimonialSection/>
 
       {/* Features Section */}
       <section id="features" className="py-20 sm:py-24 lg:py-32 relative">
