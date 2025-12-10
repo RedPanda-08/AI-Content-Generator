@@ -23,10 +23,10 @@ import { createBrowserClient } from "@supabase/ssr";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const navItems = [
-  { name: "Generator", href: "/dashboard", icon: Bot },
-  { name: "History", href: "/dashboard/history", icon: History },
+  { name: "New Post", href: "/dashboard", icon: Bot },
+  { name: "My Work", href: "/dashboard/history", icon: History },
   { name: "Brand Voice", href: "/dashboard/settings", icon: Settings },
-  { name: "Calendar", href: "/dashboard/calendar", icon: Calendar },
+  { name: "Planner", href: "/dashboard/calendar", icon: Calendar },
 ];
 
 export default function Sidebar() {

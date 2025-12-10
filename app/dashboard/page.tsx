@@ -43,14 +43,7 @@ export default function GeneratorPage() {
     return () => clearTimeout(timer);
   }, [initialized, context]);
 
-  useEffect(() => {
-    if (showCreditModal) {
-      const timer = setTimeout(() => {
-        setShowCreditModal(false);
-      }, 5000); 
-      return () => clearTimeout(timer);
-    }
-  }, [showCreditModal]);
+  // REMOVED: Auto-dismiss useEffect timer
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -59,7 +52,7 @@ export default function GeneratorPage() {
     setError(null);
     setGeneratedContent('');
     setAnalysis(null); 
-    setShowCreditModal(false); // Reset modal on new attempt
+    setShowCreditModal(false); 
 
     try {
       const accessToken = session?.access_token;
@@ -76,7 +69,6 @@ export default function GeneratorPage() {
       
       if (!response.ok) {
         const errorMsg = data.error || '';
-        // Credit Exhaustion Logic
         if (errorMsg === 'TRIAL_EXHAUSTED' || errorMsg === 'CREDIT_EXHAUSTED') {
             setIsGuestAccount(errorMsg === 'TRIAL_EXHAUSTED');
             setShowCreditModal(true);
@@ -160,39 +152,43 @@ export default function GeneratorPage() {
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      {/* --- CREDIT EXHAUSTION TOAST NOTIFICATION --- */}
+      {/* --- NOTIFICATION BANNER (In-Flow / Non-Overlapping) --- */}
+      {/* Placed here so it pushes the content down naturally */}
       {showCreditModal && (
-          <div className="fixed top-4 right-4 z-[9999] animate-slideInRight">
-              <div className="bg-zinc-900 border border-red-500/50 rounded-lg shadow-2xl shadow-red-500/20 p-4 w-80 sm:w-96">
-                  <div className="flex items-start gap-3 mb-3">
-                      <div className="p-2 bg-red-500/10 rounded-full flex-shrink-0">
-                        <Sparkles className="w-4 h-4 text-red-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-bold text-white mb-1">
-                              {isGuestAccount ? 'Trial Complete!' : 'Out of Content Tokens'}
+          <div className="w-full mb-4 animate-fadeIn flex-shrink-0">
+              <div className="bg-zinc-900 border border-red-500/50 rounded-xl shadow-lg shadow-red-500/10 p-4 relative flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-3">
+                          <div className="p-2 bg-red-500/10 rounded-full flex-shrink-0">
+                            <Sparkles className="w-5 h-5 text-red-400" />
+                          </div>
+                          <h3 className="text-base font-bold text-white leading-tight">
+                              {isGuestAccount ? 'Trial Complete!' : 'Out of Tokens'}
                           </h3>
-                          <p className="text-xs text-zinc-400 leading-relaxed">
-                              {isGuestAccount 
-                                  ? 'Your 3 free posts are used. Sign up now to get more tokens instantly.'
-                                  : 'You have used all tokens. Upgrade to continue generating.'
-                              }
-                          </p>
                       </div>
                       <button 
                         onClick={() => setShowCreditModal(false)} 
-                        className="text-zinc-500 hover:text-white transition-colors p-1 flex-shrink-0 -mt-1"
+                        className="text-zinc-500 hover:text-white transition-colors p-1"
                       >
                           <X className="w-4 h-4" />
                       </button>
                   </div>
                   
-                  <Link 
-                      href={isGuestAccount ? '/login' : '/pricing'}
-                      className="block w-full py-2 text-center bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-opacity"
-                  >
-                      {isGuestAccount ? 'Get more Tokens' : 'Upgrade'}
-                  </Link>
+                  <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
+                      {isGuestAccount 
+                          ? 'Your 3 free posts are used. Sign up now to get 500 more tokens instantly.'
+                          : 'You have used all tokens. Upgrade to continue generating.'
+                      }
+                  </p>
+
+                  <div className="flex gap-2 w-full">
+                      <Link 
+                          href={isGuestAccount ? '/login' : '/dashboard/subscriptions'}
+                          className="flex-1 py-2 text-center bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-md"
+                      >
+                          {isGuestAccount ? 'Get 500 Tokens' : 'Upgrade'}
+                      </Link>
+                  </div>
               </div>
           </div>
       )}
@@ -227,13 +223,13 @@ export default function GeneratorPage() {
              </div>
            </div>
         ) : (
-          <div className="space-y-6 sm:space-y-8 pb-4 pt-12 sm:pt-0">
+          <div className="space-y-6 sm:space-y-8 pb-4 pt-4 sm:pt-0">
             <div className="flex gap-2.5 sm:gap-3 md:gap-4 items-start">
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
                 <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div className="flex-1 mt-0.5 sm:mt-1">
-                <p className="text-gray-200 text-base sm:text-lg leading-relaxed">{submittedPrompt}</p>
+              <div className="flex-1 mt-0.5 sm:mt-1 min-w-0">
+                <p className="text-gray-200 text-base sm:text-lg leading-relaxed break-words">{submittedPrompt}</p>
                 <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-gray-500 uppercase tracking-wider">
                     {getPlatformIcon(platform)}
                     Generated for {platform}
@@ -390,21 +386,8 @@ export default function GeneratorPage() {
             transform: translateY(0);
           }
         }
-        @keyframes slideInRight {
-          from {
-            opacity: 0;
-            transform: translateX(100%);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
         .animate-fadeIn {
           animation: fadeIn 0.5s ease-out;
-        }
-        .animate-slideInRight {
-          animation: slideInRight 0.3s ease-out;
         }
       `}</style>
     </div>
