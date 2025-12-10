@@ -1,9 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react'; 
-import { Send, Bot, Sparkles, User, Copy, Check, BarChart2, Loader2, Linkedin, Twitter, Instagram } from 'lucide-react';
+import { Send, Bot, Sparkles, User, Copy, Check, BarChart2, Loader2, Linkedin, Twitter, Instagram, X } from 'lucide-react'; 
 import Textarea from 'react-textarea-autosize'; 
 import { useSupabase } from '../../components/SupabaseProvider'; 
-
+import Link from 'next/link'; 
 
 interface SupabaseContextType {
   session: { user?: { is_anonymous?: boolean }; access_token?: string } | null;
@@ -13,21 +13,19 @@ interface SupabaseContextType {
 export default function GeneratorPage() {
   const context = useSupabase() as SupabaseContextType | null;
   const { session, initialized } = context || { session: null, initialized: false };
-  
   const [isReady, setIsReady] = useState(false);
   const user = session?.user;
-
   const [prompt, setPrompt] = useState('');
   const [platform, setPlatform] = useState('linkedin');
-  
   const [submittedPrompt, setSubmittedPrompt] = useState('');
   const [generatedContent, setGeneratedContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
-  
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showCreditModal, setShowCreditModal] = useState(false);
+  const [isGuestAccount, setIsGuestAccount] = useState(false);
 
 
   useEffect(() => {
@@ -45,6 +43,15 @@ export default function GeneratorPage() {
     return () => clearTimeout(timer);
   }, [initialized, context]);
 
+  useEffect(() => {
+    if (showCreditModal) {
+      const timer = setTimeout(() => {
+        setShowCreditModal(false);
+      }, 5000); 
+      return () => clearTimeout(timer);
+    }
+  }, [showCreditModal]);
+
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     setSubmittedPrompt(prompt);
@@ -52,6 +59,7 @@ export default function GeneratorPage() {
     setError(null);
     setGeneratedContent('');
     setAnalysis(null); 
+    setShowCreditModal(false); // Reset modal on new attempt
 
     try {
       const accessToken = session?.access_token;
@@ -65,8 +73,16 @@ export default function GeneratorPage() {
       });
 
       const data = await response.json();
-
+      
       if (!response.ok) {
+        const errorMsg = data.error || '';
+        // Credit Exhaustion Logic
+        if (errorMsg === 'TRIAL_EXHAUSTED' || errorMsg === 'CREDIT_EXHAUSTED') {
+            setIsGuestAccount(errorMsg === 'TRIAL_EXHAUSTED');
+            setShowCreditModal(true);
+            setIsGenerating(false); 
+            return; 
+        }
         throw new Error(data.error || 'Something went wrong');
       }
 
@@ -143,6 +159,43 @@ export default function GeneratorPage() {
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
+
+      {/* --- CREDIT EXHAUSTION TOAST NOTIFICATION --- */}
+      {showCreditModal && (
+          <div className="fixed top-4 right-4 z-[9999] animate-slideInRight">
+              <div className="bg-zinc-900 border border-red-500/50 rounded-lg shadow-2xl shadow-red-500/20 p-4 w-80 sm:w-96">
+                  <div className="flex items-start gap-3 mb-3">
+                      <div className="p-2 bg-red-500/10 rounded-full flex-shrink-0">
+                        <Sparkles className="w-4 h-4 text-red-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-bold text-white mb-1">
+                              {isGuestAccount ? 'Trial Complete!' : 'Out of Content Tokens'}
+                          </h3>
+                          <p className="text-xs text-zinc-400 leading-relaxed">
+                              {isGuestAccount 
+                                  ? 'Your 3 free posts are used. Sign up now to get more tokens instantly.'
+                                  : 'You have used all tokens. Upgrade to continue generating.'
+                              }
+                          </p>
+                      </div>
+                      <button 
+                        onClick={() => setShowCreditModal(false)} 
+                        className="text-zinc-500 hover:text-white transition-colors p-1 flex-shrink-0 -mt-1"
+                      >
+                          <X className="w-4 h-4" />
+                      </button>
+                  </div>
+                  
+                  <Link 
+                      href={isGuestAccount ? '/login' : '/pricing'}
+                      className="block w-full py-2 text-center bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+                  >
+                      {isGuestAccount ? 'Get more Tokens' : 'Upgrade'}
+                  </Link>
+              </div>
+          </div>
+      )}
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar">
@@ -276,7 +329,6 @@ export default function GeneratorPage() {
             </div>
           </div>
         )}
-        {/* REMOVED: <div ref={bottomRef} /> */}
       </div>
       </div>
 
@@ -338,8 +390,21 @@ export default function GeneratorPage() {
             transform: translateY(0);
           }
         }
+        @keyframes slideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(100%);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
         .animate-fadeIn {
           animation: fadeIn 0.5s ease-out;
+        }
+        .animate-slideInRight {
+          animation: slideInRight 0.3s ease-out;
         }
       `}</style>
     </div>
