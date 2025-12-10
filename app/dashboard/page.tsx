@@ -43,8 +43,6 @@ export default function GeneratorPage() {
     return () => clearTimeout(timer);
   }, [initialized, context]);
 
-  // REMOVED: Auto-dismiss useEffect timer
-
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     setSubmittedPrompt(prompt);
@@ -146,16 +144,15 @@ export default function GeneratorPage() {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] max-w-4xl mx-auto px-4 pt-16 relative">
+    <div className="flex flex-col h-[100dvh] max-w-4xl mx-auto px-4 pt-20 sm:pt-4 relative">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      {/* --- NOTIFICATION BANNER (In-Flow / Non-Overlapping) --- */}
-      {/* Placed here so it pushes the content down naturally */}
+      {/* --- NOTIFICATION BANNER --- */}
       {showCreditModal && (
-          <div className="w-full mb-4 animate-fadeIn flex-shrink-0">
+          <div className="w-full mt-2 sm:mt-6 mb-2 animate-fadeIn flex-shrink-0">
               <div className="bg-zinc-900 border border-red-500/50 rounded-xl shadow-lg shadow-red-500/10 p-4 relative flex flex-col gap-3">
                   <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
@@ -183,7 +180,7 @@ export default function GeneratorPage() {
 
                   <div className="flex gap-2 w-full">
                       <Link 
-                          href={isGuestAccount ? '/login' : '/dashboard/subscriptions'}
+                          href={isGuestAccount ? '/login' : '/pricing'}
                           className="flex-1 py-2 text-center bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-md"
                       >
                           {isGuestAccount ? 'Get 500 Tokens' : 'Upgrade'}
@@ -197,7 +194,7 @@ export default function GeneratorPage() {
       <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar">
          <div className="pb-4 min-h-full">
         {!submittedPrompt ? (
-            <div className="text-center py-8 sm:py-12 px-2">
+            <div className={`text-center px-2 ${showCreditModal ? 'py-4' : 'py-8 sm:py-12'}`}>
               <div className="inline-flex p-4 sm:p-6 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 shadow-lg shadow-orange-500/30">
                 <Bot size={40} className="sm:w-12 sm:h-12 text-white" />
               </div>
@@ -223,7 +220,7 @@ export default function GeneratorPage() {
              </div>
            </div>
         ) : (
-          <div className="space-y-6 sm:space-y-8 pb-4 pt-4 sm:pt-0">
+          <div className={`space-y-6 sm:space-y-8 pb-4 ${showCreditModal ? 'pt-2' : 'pt-4 sm:pt-0'}`}>
             <div className="flex gap-2.5 sm:gap-3 md:gap-4 items-start">
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
                 <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
