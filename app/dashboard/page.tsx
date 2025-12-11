@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react'; 
+import { useState, useEffect, useRef, useCallback } from 'react'; 
 import { Send, Bot, Sparkles, User, Copy, Check, BarChart2, Loader2, Linkedin, Twitter, Instagram, X } from 'lucide-react'; 
 import Textarea from 'react-textarea-autosize'; 
 import { useSupabase } from '../../components/SupabaseProvider'; 
@@ -9,6 +9,62 @@ interface SupabaseContextType {
   session: { user?: { is_anonymous?: boolean }; access_token?: string } | null;
   initialized: boolean;
 }
+
+// --- TYPEWRITER COMPONENT (Improved with Formatting) ---
+const Typewriter = ({ text, onComplete }: { text: string; onComplete?: () => void }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const indexRef = useRef(0);
+
+  useEffect(() => {
+    // If text is empty, don't do anything
+    if (!text) return;
+
+    // Reset when text changes drastically
+    indexRef.current = 0;
+    setDisplayedText('');
+    
+    const intervalId = setInterval(() => {
+      if (indexRef.current < text.length) {
+        setDisplayedText((prev) => prev + text.charAt(indexRef.current));
+        indexRef.current++;
+      } else {
+        clearInterval(intervalId);
+        if (onComplete) onComplete();
+      }
+    }, 10); // Speed: 10ms per character
+
+    return () => clearInterval(intervalId);
+  }, [text, onComplete]);
+
+  // Helper function to format bold text (**text**) and remove asterisks
+  const formatContent = (content: string) => {
+    // Split by the bold markdown syntax
+    const parts = content.split(/(\*\*.*?\*\*)/g);
+    
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        // Remove the asterisks and return bold text
+        return <strong key={index} className="text-white font-bold">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
+  return (
+    <div className="text-gray-200 leading-loose font-['Inter',sans-serif] text-sm sm:text-[15px]" style={{ lineHeight: '1.8', letterSpacing: '0.01em' }}>
+      {displayedText.split('\n').map((paragraph, index) => (
+        paragraph.trim() ? (
+          <p key={index} className="mb-3 sm:mb-4 last:mb-0 animate-fadeIn">
+            {formatContent(paragraph)}
+          </p>
+        ) : (
+          <br key={index} />
+        )
+      ))}
+    </div>
+  );
+};
+// ---------------------------
 
 export default function GeneratorPage() {
   const context = useSupabase() as SupabaseContextType | null;
@@ -26,6 +82,14 @@ export default function GeneratorPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showCreditModal, setShowCreditModal] = useState(false);
   const [isGuestAccount, setIsGuestAccount] = useState(false);
+  
+  // State to control when buttons appear
+  const [isTypingComplete, setIsTypingComplete] = useState(false);
+
+  // Stable callback to prevent infinite re-render loop
+  const handleTypingComplete = useCallback(() => {
+    setIsTypingComplete(true);
+  }, []);
 
   useEffect(() => {
     if (initialized) {
@@ -49,6 +113,7 @@ export default function GeneratorPage() {
     setError(null);
     setGeneratedContent('');
     setAnalysis(null); 
+    setIsTypingComplete(false); // Reset typing status
     setShowCreditModal(false); 
 
     try {
@@ -143,12 +208,17 @@ export default function GeneratorPage() {
   };
 
   return (
-    // FIX 1: Added overflow-hidden to prevent whole-page scrolling
-    // Kept pt-20 to ensure header space is respected (content starts BELOW hamburger)
     <div className="flex flex-col h-[100svh] overflow-hidden max-w-4xl mx-auto px-4 pt-20 sm:pt-4 relative">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
       `}</style>
 
       {/* --- NOTIFICATION BANNER --- */}
@@ -192,15 +262,10 @@ export default function GeneratorPage() {
       )}
 
       {/* MAIN CONTENT AREA */}
-      {/* This area scrolls independently, ensuring text disappears at the top padding edge */}
-      <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar">
-         {/* Using h-full here instead of min-h-full to prevent forcing scroll on larger screens */}
-         <div className="flex flex-col h-full pb-4">
-            
+      <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar pb-2">
+         <div className="pb-4 min-h-full">
         {!submittedPrompt ? (
-            // Centered Empty State
-            <div className={`flex-1 flex flex-col justify-center items-center w-full text-center px-2 ${showCreditModal ? 'py-4' : ''}`}>
-              
+            <div className={`text-center px-2 ${showCreditModal ? 'py-4' : 'py-8 sm:py-12'}`}>
               <div className="inline-flex p-4 sm:p-6 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 shadow-lg shadow-orange-500/30">
                 <Bot size={40} className="sm:w-12 sm:h-12 text-white" />
               </div>
@@ -208,9 +273,7 @@ export default function GeneratorPage() {
                How can I help you today?
              </h1>
              <p className="text-gray-500 mb-8 sm:mb-12 text-sm sm:text-base">Choose a prompt below or type your own</p>
-             
-             {/* Cards Grid */}
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-8 sm:mt-10 md:mt-12">
                 <div onClick={() => handleCardClick('Write a witty tweet about the struggles of debugging code', 'twitter')} className="p-4 sm:p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-orange-500/50 rounded-xl sm:rounded-2xl transition-all cursor-pointer text-left">
                   <h3 className="font-semibold text-gray-200 mb-1.5 sm:mb-2 flex items-center gap-2 text-sm sm:text-base">
                     <Twitter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400"/> 
@@ -228,7 +291,7 @@ export default function GeneratorPage() {
              </div>
            </div>
         ) : (
-          <div className={`space-y-6 sm:space-y-8 pb-4 w-full ${showCreditModal ? 'pt-2' : 'pt-4 sm:pt-0'}`}>
+          <div className={`space-y-6 sm:space-y-8 pb-4 ${showCreditModal ? 'pt-2' : 'pt-4 sm:pt-0'}`}>
             <div className="flex gap-2.5 sm:gap-3 md:gap-4 items-start">
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
                 <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
@@ -262,21 +325,15 @@ export default function GeneratorPage() {
               ) : (
                 <div className="flex-1 min-w-0">
                   <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 animate-fadeIn">
-                    <div className="text-gray-200 leading-loose font-['Inter',sans-serif] text-sm sm:text-[15px]" style={{ 
-                      lineHeight: '1.8',
-                      letterSpacing: '0.01em'
-                    }}>
-                      {generatedContent.split('\n').map((paragraph, index) => (
-                        paragraph.trim() ? (
-                          <p key={index} className="mb-3 sm:mb-4 last:mb-0">
-                            {paragraph}
-                          </p>
-                        ) : (
-                          <br key={index} />
-                        )
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap justify-end gap-2 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-white/10">
+                    
+                    {/* TYPEWRITER COMPONENT */}
+                    <Typewriter 
+                        text={generatedContent} 
+                        onComplete={handleTypingComplete} 
+                    />
+
+                    {/* ACTION BUTTONS */}
+                    <div className={`flex flex-wrap justify-end gap-2 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-white/10 transition-opacity duration-500 ${isTypingComplete ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                         <button onClick={handleCopy} className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
                             {copySuccess ? <Check size={12} className="sm:w-3.5 sm:h-3.5" /> : <Copy size={12} className="sm:w-3.5 sm:h-3.5" />}
                             {copySuccess ? 'Copied' : 'Copy'}
@@ -287,6 +344,7 @@ export default function GeneratorPage() {
                         </button>
                     </div>
                   </div>
+
                   {(isAnalyzing || analysis) && (
                       <div className="mt-3 sm:mt-4 p-4 sm:p-5 bg-gradient-to-br from-blue-900/20 to-purple-900/10 border border-blue-500/20 rounded-xl sm:rounded-2xl animate-fadeIn shadow-lg">
                         <div className="flex items-center gap-2 mb-2 sm:mb-3">
@@ -380,21 +438,6 @@ export default function GeneratorPage() {
         <p className="text-[10px] sm:text-xs text-gray-600 text-center mt-2 sm:mt-3 px-2">ContentAI can make mistakes. Consider checking important information.</p>
       </div>
 
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out;
-        }
-      `}</style>
     </div>
   );
 }

@@ -187,7 +187,7 @@ export default function SettingsPage() {
                     <div className="p-5 sm:p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl transition-all hover:border-white/20">
                         <div className="flex items-center gap-2 mb-8">
                             <Sliders className="w-5 h-5 text-pink-500" />
-                            <h2 className="text-lg font-semibold tracking-tight text-white">Voice Tuner</h2>
+                            <h2 className="text-lg font-semibold tracking-tight text-white">Brand Tuner</h2>
                         </div>
                         
                         <div className="space-y-8 sm:space-y-10">
