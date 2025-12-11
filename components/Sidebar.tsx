@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import {
@@ -158,10 +158,11 @@ export default function Sidebar() {
       )}
 
       {/* Mobile overlay: fixed inset + backdrop blur; clicking it closes the sidebar */}
+      {/* FIX: Ensure this is rendered when isMobileOpen is true and has correct z-index/positioning */}
       {isMobileOpen && (
         <div
           onClick={() => setIsMobileOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[140] transition-opacity"
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[140] transition-opacity"
           aria-hidden="true"
         />
       )}
