@@ -158,7 +158,6 @@ export default function Sidebar() {
       )}
 
       {/* Mobile overlay: fixed inset + backdrop blur; clicking it closes the sidebar */}
-      {/* FIX: Ensure this is rendered when isMobileOpen is true and has correct z-index/positioning */}
       {isMobileOpen && (
         <div
           onClick={() => setIsMobileOpen(false)}
@@ -170,7 +169,8 @@ export default function Sidebar() {
       <aside
         className={`
           fixed lg:relative top-0 left-0 
-          h-screen
+          /* FIX: Changed h-screen to h-[100svh] to fit mobile viewport exactly */
+          h-[100svh]
           bg-gradient-to-b from-neutral-950 via-neutral-950 to-black
           border-r border-neutral-800/50 text-white flex flex-col transition-all duration-300 ease-in-out
           z-[150]
@@ -179,7 +179,7 @@ export default function Sidebar() {
         `}
         aria-hidden={!isMobileOpen && typeof window !== 'undefined' && window.innerWidth < 1024}
       >
-        {/* --- HEADER --- */}
+        {/* --- HEADER (Fixed Height) --- */}
         <div className={`relative py-5 border-b border-neutral-800/50 flex items-center flex-shrink-0 transition-all duration-300 ${
             !isExpanded ? "justify-center px-0" : "justify-between px-6"
           }`}
@@ -229,8 +229,9 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {/* --- NAVIGATION --- */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto overflow-x-hidden scrollbar-hide">
+        {/* --- NAVIGATION (Scrollable Area) --- */}
+        {/* FIX: Added min-h-0 to ensure flex child scrolling works properly in nested flex containers */}
+        <nav className="flex-1 min-h-0 p-4 space-y-2 overflow-y-auto scrollbar-hide">
           {/* Workspace Label */}
           <div className={`transition-all duration-300 overflow-hidden ${
              isExpanded ? "max-h-10 opacity-100 mb-4 px-3 py-2" : "max-h-0 opacity-0 mb-0"
@@ -285,7 +286,8 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* --- USER SECTION --- */}
+        {/* --- USER SECTION (Fixed Bottom) --- */}
+        {/* flex-shrink-0 ensures this never collapses, even on short screens */}
         <div className={`border-t border-neutral-800/50 space-y-3 flex-shrink-0 transition-all duration-300 ${
             isExpanded ? "p-4" : "p-2"
         }`}>
