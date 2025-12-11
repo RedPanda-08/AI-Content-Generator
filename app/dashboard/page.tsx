@@ -143,8 +143,9 @@ export default function GeneratorPage() {
   };
 
   return (
-    // FIX: Changed h-[100dvh] to h-[100svh] for better mobile support
-    <div className="flex flex-col h-[100svh] max-w-4xl mx-auto px-4 pt-20 sm:pt-4 relative">
+    // FIX 1: Added overflow-hidden to prevent whole-page scrolling
+    // Kept pt-20 to ensure header space is respected (content starts BELOW hamburger)
+    <div className="flex flex-col h-[100svh] overflow-hidden max-w-4xl mx-auto px-4 pt-20 sm:pt-4 relative">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -191,10 +192,15 @@ export default function GeneratorPage() {
       )}
 
       {/* MAIN CONTENT AREA */}
+      {/* This area scrolls independently, ensuring text disappears at the top padding edge */}
       <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar">
-         <div className="pb-4 min-h-full">
+         {/* Using h-full here instead of min-h-full to prevent forcing scroll on larger screens */}
+         <div className="flex flex-col h-full pb-4">
+            
         {!submittedPrompt ? (
-            <div className={`text-center px-2 ${showCreditModal ? 'py-4' : 'py-8 sm:py-12'}`}>
+            // Centered Empty State
+            <div className={`flex-1 flex flex-col justify-center items-center w-full text-center px-2 ${showCreditModal ? 'py-4' : ''}`}>
+              
               <div className="inline-flex p-4 sm:p-6 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 shadow-lg shadow-orange-500/30">
                 <Bot size={40} className="sm:w-12 sm:h-12 text-white" />
               </div>
@@ -202,7 +208,9 @@ export default function GeneratorPage() {
                How can I help you today?
              </h1>
              <p className="text-gray-500 mb-8 sm:mb-12 text-sm sm:text-base">Choose a prompt below or type your own</p>
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-8 sm:mt-10 md:mt-12">
+             
+             {/* Cards Grid */}
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
                 <div onClick={() => handleCardClick('Write a witty tweet about the struggles of debugging code', 'twitter')} className="p-4 sm:p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-orange-500/50 rounded-xl sm:rounded-2xl transition-all cursor-pointer text-left">
                   <h3 className="font-semibold text-gray-200 mb-1.5 sm:mb-2 flex items-center gap-2 text-sm sm:text-base">
                     <Twitter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400"/> 
@@ -220,7 +228,7 @@ export default function GeneratorPage() {
              </div>
            </div>
         ) : (
-          <div className={`space-y-6 sm:space-y-8 pb-4 ${showCreditModal ? 'pt-2' : 'pt-4 sm:pt-0'}`}>
+          <div className={`space-y-6 sm:space-y-8 pb-4 w-full ${showCreditModal ? 'pt-2' : 'pt-4 sm:pt-0'}`}>
             <div className="flex gap-2.5 sm:gap-3 md:gap-4 items-start">
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
                 <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
