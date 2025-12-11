@@ -12,6 +12,7 @@ interface SupabaseContextType {
   initialized: boolean;
 }
 
+// Helper type to avoid linting errors with dynamic Supabase clients
 type AnySupabaseClient = {
   from: (table: string) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,18 +25,18 @@ const Typewriter = ({ text, onComplete }: { text: string; onComplete?: () => voi
   const [displayedText, setDisplayedText] = useState('');
   const indexRef = useRef(0);
 
-  // STRICT CLEANING FUNCTION
-  // 1. Removes all asterisks (*).
-  // 2. Removes weird hidden characters.
-  // 3. Removes leading quotes or spaces.
-  // 4. Ensures the first character is a Capital Letter.
   const cleanAndFormat = (input: string) => {
     if (!input) return "";
-    
     let cleaned = input
-        .replace(/[\uFFFD\uFEFF]/g, '') // Remove invisible Unicode errors
-        .replace(/\*/g, '')             // Remove ALL asterisks
-        .replace(/^["'\s]+/, '');       // Remove quotes/spaces at the start
+        .replace(/[\uFFFD\uFEFF]/g, '')
+        .replace(/\*/g, '')
+        .trim();
+
+    if (cleaned.startsWith('"') && cleaned.endsWith('"')) {
+        cleaned = cleaned.slice(1, -1);
+    } else if (cleaned.startsWith("'") && cleaned.endsWith("'")) {
+        cleaned = cleaned.slice(1, -1);
+    }
 
     if (cleaned.length > 0) {
         cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
@@ -59,7 +60,7 @@ const Typewriter = ({ text, onComplete }: { text: string; onComplete?: () => voi
         clearInterval(intervalId);
         if (onComplete) onComplete();
       }
-    }, 8); // Fast typing speed
+    }, 8);
 
     return () => clearInterval(intervalId);
   }, [processedText, onComplete]);
@@ -83,7 +84,6 @@ export default function GeneratorPage() {
   const context = useSupabase() as SupabaseContextType | null;
   const { session, initialized } = context || { session: null, initialized: false };
   
-  // Direct client for DB operations to prevent "client.from is not a function"
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -135,18 +135,9 @@ export default function GeneratorPage() {
     return () => clearTimeout(timer);
   }, [initialized, context]);
 
-  // Handle clicking outside the popup to close it
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (scheduleContainerRef.current && !scheduleContainerRef.current.contains(event.target as Node)) {
-        setShowDatePicker(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  // --- FIXED: REMOVED THE GLOBAL 'mousedown' LISTENER ---
+  // The listener was causing the date picker to close when clicked.
+  // We now use a Backdrop Strategy in the JSX.
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -201,7 +192,6 @@ export default function GeneratorPage() {
   
   const handleCopy = () => {
     if (!generatedContent) return;
-    // Clean before copying to clipboard too
     const cleanText = generatedContent.replace(/\*/g, '').trim(); 
     navigator.clipboard.writeText(cleanText).then(() => {
       setCopySuccess(true);
@@ -243,17 +233,24 @@ export default function GeneratorPage() {
     setIsScheduling(true);
     setError(null);
 
-    // Clean content before saving to DB
-    const cleanTitle = generatedContent.replace(/\*/g, '').trim();
+    let cleanTitle = generatedContent
+        .replace(/[\uFFFD\uFEFF]/g, '')
+        .replace(/\*/g, '')
+        .trim();
+    
+    if (cleanTitle.startsWith('"') && cleanTitle.endsWith('"')) {
+        cleanTitle = cleanTitle.slice(1, -1);
+    } else if (cleanTitle.startsWith("'") && cleanTitle.endsWith("'")) {
+        cleanTitle = cleanTitle.slice(1, -1);
+    }
+
+    if (cleanTitle.length > 0) {
+        cleanTitle = cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1);
+    }
 
     try {
         const client = supabase as unknown as AnySupabaseClient;
         
-        // Exact DB Mapping from your screenshot:
-        // user_id -> user_id
-        // title -> cleanTitle (Stores content)
-        // platform -> platform
-        // date -> scheduledDate (Stores date)
         const { error } = await client.from('content_schedule').insert({
             user_id: session.user.id,
             title: cleanTitle, 
@@ -274,8 +271,7 @@ export default function GeneratorPage() {
         if (err instanceof Error) {
             msg = err.message;
         } else if (typeof err === "object" && err !== null && "message" in err) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            msg = (err as any).message;
+            msg = String((err as { message: unknown }).message);
         }
         console.error("Schedule error:", msg);
         setError(msg);
@@ -313,7 +309,72 @@ export default function GeneratorPage() {
         }
       `}</style>
 
-      {/* --- NOTIFICATION BANNER (Credits Done) --- */}
+      {/* --- SCHEDULE POPUP --- */}
+      <AnimatePresence>
+        {showDatePicker && (
+            <>
+                {/* 1. MOBILE LAYOUT: Full Screen Modal in Center */}
+                {/* Z-60 ensures it covers everything on mobile */}
+                <div className="fixed inset-0 z-[60] flex md:hidden items-center justify-center p-4">
+                    
+                    {/* Dark Backdrop for Mobile */}
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setShowDatePicker(false)}
+                    />
+                    
+                    {/* Centered Card for Mobile */}
+                     <motion.div 
+                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                        onClick={(e) => e.stopPropagation()} // Stop click from hitting backdrop
+                        className="bg-[#121212] border border-white/10 p-6 rounded-3xl shadow-2xl w-full max-w-xs relative overflow-hidden z-10"
+                    >
+                         <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -z-10" />
+                         <div className="flex justify-between items-start mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-zinc-800 rounded-xl">
+                                    <Clock className="w-5 h-5 text-orange-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-bold text-white leading-tight">Schedule</h3>
+                                    <p className="text-[11px] text-zinc-400">Pick a time to post</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowDatePicker(false)} className="text-zinc-500 hover:text-white p-1">
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        <input 
+                            type="datetime-local" 
+                            className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm focus:outline-none focus:border-orange-500 mb-5 [color-scheme:dark] shadow-inner"
+                            onChange={(e) => setScheduledDate(e.target.value)}
+                        />
+                        <button 
+                            onClick={handleScheduleConfirm}
+                            disabled={!scheduledDate || isScheduling}
+                            className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl font-semibold text-sm text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20"
+                        >
+                            {isScheduling ? <Loader2 className="w-4 h-4 animate-spin" /> : scheduleSuccess ? <Check className="w-4 h-4" /> : 'Confirm & Save'}
+                        </button>
+                    </motion.div>
+                </div>
+
+                {/* 2. DESKTOP BACKDROP: Transparent Click-Outside */}
+                {/* Z-40 sits behind the Z-50 popover but above page content */}
+                <div 
+                    className="hidden md:block fixed inset-0 z-40 bg-transparent" 
+                    onClick={() => setShowDatePicker(false)}
+                />
+            </>
+        )}
+      </AnimatePresence>
+
+      {/* --- NOTIFICATION BANNER --- */}
       {showCreditModal && (
           <div className="w-full mt-2 sm:mt-6 mb-2 animate-fadeIn flex-shrink-0 z-20">
               <div className="bg-zinc-900 border border-red-500/50 rounded-xl shadow-lg shadow-red-500/10 p-4 relative flex flex-col gap-3">
@@ -355,7 +416,7 @@ export default function GeneratorPage() {
 
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar pb-2">
-         <div className="pb-4 min-h-full">
+         <div className="pb-32 sm:pb-24 min-h-full">
         {!submittedPrompt ? (
             <div className={`text-center px-2 ${showCreditModal ? 'py-4' : 'py-8 sm:py-12'}`}>
               <div className="inline-flex p-4 sm:p-6 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 shadow-lg shadow-orange-500/30">
@@ -432,7 +493,8 @@ export default function GeneratorPage() {
                         </button>
                         
                         {/* --- SCHEDULE BUTTON WRAPPER FOR POPOVER --- */}
-                        <div className="relative" ref={scheduleContainerRef}>
+                        {/* Z-50 ensures it stays above the Z-40 transparent backdrop */}
+                        <div className="relative z-50" ref={scheduleContainerRef}>
                             <button 
                                 onClick={() => setShowDatePicker(!showDatePicker)} 
                                 className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors ${showDatePicker ? 'bg-white/20 text-white' : ''}`}
@@ -441,7 +503,7 @@ export default function GeneratorPage() {
                                 Schedule
                             </button>
 
-                            {/* --- THE FLOATING POPOVER (Floating BELOW the button) --- */}
+                            {/* --- DESKTOP POPOVER --- */}
                             <AnimatePresence>
                                 {showDatePicker && (
                                     <motion.div 
@@ -449,34 +511,34 @@ export default function GeneratorPage() {
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 5, scale: 0.98 }}
                                         transition={{ duration: 0.2 }}
-                                        className="absolute right-0 top-full mt-2 w-64 sm:w-72 bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl z-50 p-4"
+                                        onClick={(e) => e.stopPropagation()} 
+                                        // Added mb-3 to give visual space above the button
+                                        className="hidden md:block absolute right-0 bottom-full mb-3 w-72 bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl z-50 p-4"
                                     >
-                                        <div className="flex items-center justify-between mb-3">
-                                            <span className="text-xs font-bold text-gray-300 flex items-center gap-2">
-                                                <Clock className="w-3.5 h-3.5 text-orange-500" /> 
-                                                Pick Date & Time
-                                            </span>
-                                        </div>
-                                        
-                                        <input 
-                                            type="datetime-local" 
-                                            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-white text-xs focus:outline-none focus:border-orange-500 mb-3 [color-scheme:dark]"
-                                            onChange={(e) => setScheduledDate(e.target.value)}
-                                        />
-
-                                        <button 
-                                            onClick={handleScheduleConfirm}
-                                            disabled={!scheduledDate || isScheduling}
-                                            className="w-full py-2 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg font-semibold text-xs text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98]"
-                                        >
-                                            {isScheduling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : scheduleSuccess ? <Check className="w-3.5 h-3.5" /> : 'Confirm'}
-                                            {scheduleSuccess && ' Done!'}
-                                        </button>
+                                            <div className="flex items-center justify-between mb-3">
+                                                <span className="text-xs font-bold text-gray-300 flex items-center gap-2">
+                                                    <Clock className="w-3.5 h-3.5 text-orange-500" /> 
+                                                    Pick Date & Time
+                                                </span>
+                                            </div>
+                                            <input 
+                                                type="datetime-local" 
+                                                className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-white text-xs focus:outline-none focus:border-orange-500 mb-3 [color-scheme:dark]"
+                                                onChange={(e) => setScheduledDate(e.target.value)}
+                                            />
+                                            <button 
+                                                onClick={handleScheduleConfirm}
+                                                disabled={!scheduledDate || isScheduling}
+                                                className="w-full py-2 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg font-semibold text-xs text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+                                            >
+                                                {isScheduling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : scheduleSuccess ? <Check className="w-3.5 h-3.5" /> : 'Confirm'}
+                                                {scheduleSuccess && ' Scheduled!'}
+                                            </button>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
                         </div>
-                        {/* ------------------------------------------- */}
+                        
 
                         <button onClick={handleAnalyze} disabled={isAnalyzing} className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 rounded-lg transition-colors disabled:opacity-50">
                             {isAnalyzing ? <Loader2 size={12} className="sm:w-3.5 sm:h-3.5 animate-spin" /> : <BarChart2 size={12} className="sm:w-3.5 sm:h-3.5" />}
@@ -499,6 +561,7 @@ export default function GeneratorPage() {
                         ) : (
                           <div className="text-xs sm:text-sm text-blue-100/90 leading-relaxed font-['Inter',sans-serif] space-y-2 sm:space-y-3" style={{ lineHeight: '1.8' }}>
                             {analysis?.split('\n').map((line, index) => {
+                              // Standard Cleaning for Analysis Display
                               const cleanLine = line.replace(/\*\*/g, '').replace(/\*/g, '').replace(/^#+\s*/, '').trim();
                               if (!cleanLine) return null;
                               const isHeading = cleanLine.length < 60 && /^[A-Z]/.test(cleanLine) && !cleanLine.includes('.');
