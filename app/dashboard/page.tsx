@@ -27,7 +27,6 @@ export default function GeneratorPage() {
   const [showCreditModal, setShowCreditModal] = useState(false);
   const [isGuestAccount, setIsGuestAccount] = useState(false);
 
-
   useEffect(() => {
     if (initialized) {
       setIsReady(true);
@@ -130,7 +129,7 @@ export default function GeneratorPage() {
 
   if (!isReady) {
       return (
-        <div className="flex h-full items-center justify-center">
+        <div className="flex h-[100svh] items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
         </div>
       );
@@ -144,8 +143,8 @@ export default function GeneratorPage() {
   };
 
   return (
-    // FIX: Using h-[100dvh] for mobile viewport height, pt-16 to clear header
-    <div className="flex flex-col h-[100dvh] max-w-4xl mx-auto px-4 pt-16 lg:pt-4 relative overflow-hidden">
+    // FIX: Changed h-[100dvh] to h-[100svh] for better mobile support
+    <div className="flex flex-col h-[100svh] max-w-4xl mx-auto px-4 pt-20 sm:pt-4 relative">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -153,7 +152,7 @@ export default function GeneratorPage() {
 
       {/* --- NOTIFICATION BANNER --- */}
       {showCreditModal && (
-          <div className="w-full mt-2 sm:mt-6 mb-2 animate-fadeIn flex-shrink-0 z-20">
+          <div className="w-full mt-2 sm:mt-6 mb-2 animate-fadeIn flex-shrink-0">
               <div className="bg-zinc-900 border border-red-500/50 rounded-xl shadow-lg shadow-red-500/10 p-4 relative flex flex-col gap-3">
                   <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
@@ -192,8 +191,7 @@ export default function GeneratorPage() {
       )}
 
       {/* MAIN CONTENT AREA */}
-      {/* flex-1 allows it to take up remaining height. overflow-y-auto handles its own scrolling. */}
-      <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar pb-2">
+      <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar">
          <div className="pb-4 min-h-full">
         {!submittedPrompt ? (
             <div className={`text-center px-2 ${showCreditModal ? 'py-4' : 'py-8 sm:py-12'}`}>
@@ -328,7 +326,7 @@ export default function GeneratorPage() {
       </div>
 
       {/* INPUT AREA */}
-      <div className="mt-auto flex-shrink-0 pb-6 sm:pb-6 pt-2">
+      <div className="mt-auto flex-shrink-0 pb-6 sm:pb-6">
         <div className="relative bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl focus-within:border-orange-500/50 transition-colors">
           
           {/* Platform Selector Header */}

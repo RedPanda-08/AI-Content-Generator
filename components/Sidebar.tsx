@@ -113,26 +113,6 @@ export default function Sidebar() {
     };
   }, [supabase, router]);
 
-  // lock body scroll while mobile sidebar is open and support closing with Escape
-  useEffect(() => {
-    const originalOverflow = typeof document !== 'undefined' ? document.body.style.overflow : '';
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isMobileOpen) setIsMobileOpen(false);
-    };
-
-    if (isMobileOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = originalOverflow;
-    }
-
-    window.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [isMobileOpen]);
-
   const handleSignOut = async () => {
     isSigningOut.current = true;
     await supabase.auth.signOut();
@@ -151,25 +131,22 @@ export default function Sidebar() {
         <button
           onClick={() => setIsMobileOpen(true)}
           className="lg:hidden fixed top-4 left-4 z-[100] p-3 bg-neutral-900/90 backdrop-blur-xl rounded-xl border border-neutral-800/50 text-white hover:bg-neutral-800/90 transition-all shadow-lg"
-          aria-label="Open menu"
         >
           <Menu className="w-5 h-5" />
         </button>
       )}
 
-      {/* Mobile overlay: fixed inset + backdrop blur; clicking it closes the sidebar */}
+      {/* Mobile overlay */}
       {isMobileOpen && (
         <div
           onClick={() => setIsMobileOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[140] transition-opacity"
-          aria-hidden="true"
+          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[140]"
         />
       )}
       
       <aside
         className={`
           fixed lg:relative top-0 left-0 
-          /* FIX: Changed h-screen to h-[100svh] to fit mobile viewport exactly */
           h-[100svh]
           bg-gradient-to-b from-neutral-950 via-neutral-950 to-black
           border-r border-neutral-800/50 text-white flex flex-col transition-all duration-300 ease-in-out
@@ -177,9 +154,8 @@ export default function Sidebar() {
           ${isMobileOpen ? "translate-x-0 w-[280px]" : "-translate-x-full lg:translate-x-0"}
           ${isCollapsed ? "lg:w-[85px]" : "w-[280px] lg:w-[280px]"}
         `}
-        aria-hidden={!isMobileOpen && typeof window !== 'undefined' && window.innerWidth < 1024}
       >
-        {/* --- HEADER (Fixed Height) --- */}
+        {/* --- HEADER --- */}
         <div className={`relative py-5 border-b border-neutral-800/50 flex items-center flex-shrink-0 transition-all duration-300 ${
             !isExpanded ? "justify-center px-0" : "justify-between px-6"
           }`}
@@ -198,40 +174,28 @@ export default function Sidebar() {
               <span className="block text-[10px] text-neutral-500 uppercase">Pro Studio</span>
             </div>
           </Link>
-
-          {/* Icon Only Mode */}
-          {!isExpanded && (
-             <div className="w-11 h-11 bg-gradient-to-br from-orange-500 via-orange-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
-                <LayoutDashboard className="w-5 h-5 text-white" />
-             </div>
-          )}
-
-          {/* Desktop Collapse Button */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`hidden lg:flex items-center justify-center w-9 h-9 rounded-xl hover:bg-neutral-800/50 border border-transparent hover:border-neutral-700/50 text-neutral-500 hover:text-white transition-all flex-shrink-0 ${
-               !isExpanded 
-                 ? "absolute -right-3 top-1/2 -translate-y-1/2 bg-neutral-900 border-neutral-700 shadow-xl scale-90 z-50" 
-                 : ""
-            }`}
-            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className={`hidden lg:flex items-center justify-center w-9 h-9 rounded-xl 
+              hover:bg-neutral-800/50 border border-transparent hover:border-neutral-700/50 
+              text-neutral-500 hover:text-white transition-all flex-shrink-0
+              ${!isExpanded ? "bg-neutral-900 border-neutral-800" : ""}
+            `}
           >
             {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
           </button>
 
-          {/* Mobile Close Button */}
+          {/* Mobile Close Button (Only on Mobile) */}
           <button
             onClick={() => setIsMobileOpen(false)}
             className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-neutral-800/50 hover:bg-neutral-800 text-white transition-all border border-neutral-700/50 flex-shrink-0"
-            aria-label="Close menu"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* --- NAVIGATION (Scrollable Area) --- */}
-        {/* FIX: Added min-h-0 to ensure flex child scrolling works properly in nested flex containers */}
-        <nav className="flex-1 min-h-0 p-4 space-y-2 overflow-y-auto scrollbar-hide">
+        {/* --- NAVIGATION --- */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto overflow-x-hidden scrollbar-hide">
           {/* Workspace Label */}
           <div className={`transition-all duration-300 overflow-hidden ${
              isExpanded ? "max-h-10 opacity-100 mb-4 px-3 py-2" : "max-h-0 opacity-0 mb-0"
@@ -286,8 +250,7 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* --- USER SECTION (Fixed Bottom) --- */}
-        {/* flex-shrink-0 ensures this never collapses, even on short screens */}
+        {/* --- USER SECTION --- */}
         <div className={`border-t border-neutral-800/50 space-y-3 flex-shrink-0 transition-all duration-300 ${
             isExpanded ? "p-4" : "p-2"
         }`}>
@@ -401,4 +364,4 @@ export default function Sidebar() {
       `}</style>
     </>
   );
-}
+} 
