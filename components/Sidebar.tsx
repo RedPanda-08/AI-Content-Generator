@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Link from "next/link";
 import {
@@ -113,6 +113,26 @@ export default function Sidebar() {
     };
   }, [supabase, router]);
 
+  // lock body scroll while mobile sidebar is open and support closing with Escape
+  useEffect(() => {
+    const originalOverflow = typeof document !== 'undefined' ? document.body.style.overflow : '';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isMobileOpen) setIsMobileOpen(false);
+    };
+
+    if (isMobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = originalOverflow;
+    }
+
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [isMobileOpen]);
+
   const handleSignOut = async () => {
     isSigningOut.current = true;
     await supabase.auth.signOut();
@@ -127,36 +147,36 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile Toggle Button */}
-      {/* FIX: Increased z-index to z-[100] to ensure it's always clickable */}
       {!isMobileOpen && (
         <button
           onClick={() => setIsMobileOpen(true)}
           className="lg:hidden fixed top-4 left-4 z-[100] p-3 bg-neutral-900/90 backdrop-blur-xl rounded-xl border border-neutral-800/50 text-white hover:bg-neutral-800/90 transition-all shadow-lg"
+          aria-label="Open menu"
         >
           <Menu className="w-5 h-5" />
         </button>
       )}
 
-      {/* Mobile overlay */}
-      {/* FIX: Increased z-index to z-[140] to cover any floating feedback buttons */}
+      {/* Mobile overlay: fixed inset + backdrop blur; clicking it closes the sidebar */}
       {isMobileOpen && (
         <div
           onClick={() => setIsMobileOpen(false)}
-          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[140]"
+          className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-[140] transition-opacity"
+          aria-hidden="true"
         />
       )}
       
       <aside
         className={`
           fixed lg:relative top-0 left-0 
-          h-[100dvh]
+          h-screen
           bg-gradient-to-b from-neutral-950 via-neutral-950 to-black
           border-r border-neutral-800/50 text-white flex flex-col transition-all duration-300 ease-in-out
-          /* FIX: Increased z-index to z-[150] to sit ON TOP of the overlay and feedback form */
           z-[150]
           ${isMobileOpen ? "translate-x-0 w-[280px]" : "-translate-x-full lg:translate-x-0"}
           ${isCollapsed ? "lg:w-[85px]" : "w-[280px] lg:w-[280px]"}
         `}
+        aria-hidden={!isMobileOpen && typeof window !== 'undefined' && window.innerWidth < 1024}
       >
         {/* --- HEADER --- */}
         <div className={`relative py-5 border-b border-neutral-800/50 flex items-center flex-shrink-0 transition-all duration-300 ${
@@ -193,6 +213,7 @@ export default function Sidebar() {
                  ? "absolute -right-3 top-1/2 -translate-y-1/2 bg-neutral-900 border-neutral-700 shadow-xl scale-90 z-50" 
                  : ""
             }`}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
           </button>
@@ -201,6 +222,7 @@ export default function Sidebar() {
           <button
             onClick={() => setIsMobileOpen(false)}
             className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-neutral-800/50 hover:bg-neutral-800 text-white transition-all border border-neutral-700/50 flex-shrink-0"
+            aria-label="Close menu"
           >
             <X className="w-5 h-5" />
           </button>

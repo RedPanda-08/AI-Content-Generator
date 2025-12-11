@@ -144,7 +144,7 @@ export default function GeneratorPage() {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] max-w-4xl mx-auto px-4 pt-20 sm:pt-4 relative">
+    <div className="flex flex-col min-h-screen pb-[env(safe-area-inset-bottom)] max-w-4xl mx-auto px-4 pt-20 sm:pt-4 relative">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -360,6 +360,7 @@ export default function GeneratorPage() {
             minRows={1}
             maxRows={6}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGenerate(); } }}
+            onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })}
           />
           <button 
             onClick={handleGenerate} 
