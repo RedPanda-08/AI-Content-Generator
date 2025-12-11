@@ -86,8 +86,6 @@ Open [http://localhost:3000](https://www.google.com/search?q=http://localhost:30
 
 ## 🔮 Future Work
 
- --> Streaming AI Responses: Implement streaming for AI responses to provide a real-time, typewriter-like effect for a  better user experience.
-
 --> Content Calendar: Implement a visual calendar where users can schedule their generated content for future posting.
 
 --> Usage-Based Limits: Introduce a credit system to manage API costs and limit the number of generations per user plan.
