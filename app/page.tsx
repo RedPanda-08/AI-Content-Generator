@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useSupabase } from '../components/SupabaseProvider';
-import { Bot, Zap, BarChart2, Lightbulb, TrendingUp, Star, Sparkles, ArrowRight, Users, Clock, Target, Loader2, Check, X } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Bot, Zap, BarChart2, Lightbulb, TrendingUp, Star, Sparkles, ArrowRight, Users, Clock, Target, Loader2, Check, X, AlertCircle, FileText, Calendar as CalendarIcon } from 'lucide-react';
+import { motion} from 'framer-motion';
 import TestimonialSection from '../components/TestimonialSection';
 
 const fadeInUp = {
@@ -261,8 +261,7 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* --- BRAND TICKER SECTION --- */}
-      {/* ADDED: Framer Motion Animation to Ticker Container */}
+      {/* --- BRAND TICKER SECTION (OFFICIAL LOGOS) --- */}
       <motion.section 
         className="py-10 border-t border-white/[0.05] bg-white/[0.01]"
         initial="hidden"
@@ -303,112 +302,225 @@ export default function HomePage() {
           </div>
         </div>
       </motion.section>
-
-      {/* --- BEFORE & AFTER COMPARISON --- */}
       <motion.div 
          id="demo" 
-         className="py-16 sm:py-24 bg-zinc-900/30 border-y border-white/5 relative overflow-hidden"
+         className="py-20 sm:py-32 bg-zinc-900/30 border-y border-white/5 relative overflow-hidden"
          initial="hidden"
          whileInView="visible"
          viewport={{ once: true, margin: "-100px" }}
          variants={staggerContainer}
       >
+        {/* Glow Effects */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[100px] -z-10" />
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[100px] -z-10" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div variants={fadeInUp} className="text-center mb-12 sm:mb-16">
+            <div className="inline-block px-4 py-2 bg-orange-500/10 border border-orange-500/20 rounded-full mb-4">
+              <span className="text-orange-400 font-semibold text-sm">See The Difference</span>
+            </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-              Stop Wasting Time on <br/>
-              <span className="bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">Manual Work</span>
+              The Old Way vs. <span className="bg-gradient-to-r from-orange-400 to-pink-500 bg-clip-text text-transparent">The AI Way</span>
             </h2>
-            <p className="text-zinc-400 text-base sm:text-lg">See the difference AI makes in your daily workflow.</p>
+            <p className="text-zinc-400 text-base sm:text-lg max-w-2xl mx-auto">Creating social media content used to be exhausting. Not anymore.</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start relative">
+            
+            {/* VS Divider - Desktop */}
+            <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30">     
+            </div>
+
+            {/* LEFT: THE OLD WAY (Pain) */}
             <motion.div 
               variants={fadeInUp} 
-              whileHover={{ scale: 1.02, rotate: -1 }} 
+              whileHover={{ scale: 1.02, rotate: -0.5 }} 
               transition={{ type: "spring", stiffness: 300 }}
               className="relative group"
             >
-              <div className="absolute inset-0 bg-red-500/5 rounded-3xl transform -rotate-1 transition-transform group-hover:-rotate-2" />
-              <div className="relative p-6 sm:p-8 bg-black/80 border border-white/10 rounded-3xl backdrop-blur-xl">
-                <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                        <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                        <div className="w-3 h-3 rounded-full bg-green-500/80" />
-                    </div>
-                    <span className="ml-2 text-xs sm:text-sm font-mono text-red-400 tracking-wider">MANUAL_PROCESS.exe</span>
+              {/* Label Badge */}
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 bg-red-500 text-white text-sm font-bold px-4 py-2 rounded-lg shadow-lg border-2 border-red-400">
+                ❌ WITHOUT AI
+              </div>
+
+              <div className="mt-8 relative p-6 sm:p-8 bg-gradient-to-br from-red-950/50 to-black border-2 border-red-500/30 rounded-3xl backdrop-blur-xl shadow-2xl">
+                
+                {/* Frustrated Emoji */}
+                <div className="absolute -top-8 -right-8 text-6xl opacity-30 rotate-12">😫</div>
+
+                {/* Title */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center border border-red-500/30">
+                    <Clock className="w-6 h-6 text-red-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-red-400">The Manual Way</h3>
+                    <p className="text-xs text-zinc-500">Time: 1-2 Hours</p>
                   </div>
                 </div>
-                <div className="space-y-4 sm:space-y-5 font-mono text-xs sm:text-sm text-zinc-500">
-                  <div className="flex gap-3 sm:gap-4 items-start opacity-70">
-                    <span className="text-zinc-600 min-w-[50px] sm:min-w-[60px]">09:00</span>
-                    <span className="line-through decoration-red-500/30">Open blank document...</span>
+
+                {/* Pain Points */}
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-3 bg-black/30 rounded-lg border border-red-500/10">
+                    <div className="w-6 h-6 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-red-400 text-xs font-bold">1</span>
+                    </div>
+                    <div>
+                      <p className="text-white font-medium text-sm mb-1">Stare at blank screen</p>
+                      <p className="text-zinc-500 text-xs">Writer&apos;s block kicks in immediately</p>
+                    </div>
                   </div>
-                  <div className="flex gap-3 sm:gap-4 items-start opacity-70">
-                    <span className="text-zinc-600 min-w-[50px] sm:min-w-[60px]">09:15</span>
-                    <span className="line-through decoration-red-500/30">Stare at blinking cursor...</span>
+
+                  <div className="flex items-start gap-3 p-3 bg-black/30 rounded-lg border border-red-500/10">
+                    <div className="w-6 h-6 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-red-400 text-xs font-bold">2</span>
+                    </div>
+                    <div>
+                      <p className="text-white font-medium text-sm mb-1">Write, delete, rewrite</p>
+                      <p className="text-zinc-500 text-xs">Nothing sounds quite right</p>
+                    </div>
                   </div>
-                  <div className="flex gap-3 sm:gap-4 items-start opacity-70">
-                    <span className="text-zinc-600 min-w-[50px] sm:min-w-[60px]">09:45</span>
-                    <span className="line-through decoration-red-500/30">Write 3 bad headlines...</span>
+
+                  <div className="flex items-start gap-3 p-3 bg-black/30 rounded-lg border border-red-500/10">
+                    <div className="w-6 h-6 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-red-400 text-xs font-bold">3</span>
+                    </div>
+                    <div>
+                      <p className="text-white font-medium text-sm mb-1">Search for inspiration</p>
+                      <p className="text-zinc-500 text-xs">Get lost scrolling competitors</p>
+                    </div>
                   </div>
-                  <div className="flex gap-3 sm:gap-4 items-start text-red-400/90 font-bold mt-4 pt-4 border-t border-white/5">
-                    <span className="min-w-[50px] sm:min-w-[60px]">10:30</span>
-                    <span>Give up & scroll Instagram.</span>
+
+                  <div className="flex items-start gap-3 p-3 bg-black/30 rounded-lg border border-red-500/10">
+                    <div className="w-6 h-6 bg-red-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-red-400 text-xs font-bold">4</span>
+                    </div>
+                    <div>
+                      <p className="text-white font-medium text-sm mb-1">Settle for &quot;good enough&quot;</p>
+                      <p className="text-zinc-500 text-xs">Post it and hope for the best</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Summary */}
+                <div className="mt-6 p-4 bg-red-500/10 rounded-xl border border-red-500/30 flex items-center gap-3">
+                  <X className="w-5 h-5 text-red-400 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-red-400 font-bold text-sm">Result: Stressed & Exhausted</p>
+                    <p className="text-zinc-500 text-xs">And you still need to do this tomorrow...</p>
                   </div>
                 </div>
               </div>
             </motion.div>
 
+            {/* RIGHT: THE NEW WAY (Solution) */}
             <motion.div 
               variants={fadeInUp} 
               whileHover={{ scale: 1.03, y: -5 }} 
               transition={{ type: "spring", stiffness: 300 }}
               className="relative group"
             >
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-3xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-500" />
-              <div className="relative p-6 sm:p-8 bg-zinc-900 border border-white/10 rounded-3xl shadow-2xl backdrop-blur-xl bg-opacity-80">
-                <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex gap-2">
-                        <div className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]" /> 
-                        <div className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]" /> 
-                        <div className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]" /> 
-                    </div>
-                    <span className="ml-2 text-xs sm:text-sm font-mono text-green-400 tracking-wider">ContentAI Flow</span>
+              {/* Label Badge */}
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-20 bg-green-500 text-white text-sm font-bold px-4 py-2 rounded-lg shadow-lg border-2 border-green-400">
+                ✨ WITH AI
+              </div>
+
+              <div className="mt-8 absolute -inset-1 bg-gradient-to-r from-orange-500 to-pink-600 rounded-3xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity duration-500" />
+              <div className="mt-8 relative p-6 sm:p-8 bg-gradient-to-br from-zinc-900 to-black border-2 border-green-500/30 rounded-3xl shadow-2xl backdrop-blur-xl">
+                
+                {/* Happy Emoji */}
+                <div className="absolute -top-8 -right-8 text-6xl opacity-40 -rotate-12">🚀</div>
+
+                {/* Title */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-green-400">The AI Way</h3>
+                    <p className="text-xs text-zinc-500">Time: 30 Seconds</p>
                   </div>
                 </div>
+
+                {/* Simple Steps */}
                 <div className="space-y-4">
-                    <div className="flex gap-3 sm:gap-4 items-start">
-                        <div className="p-2.5 bg-gradient-to-br from-orange-500 to-pink-600 rounded-xl shadow-lg">
-                            <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                        </div>
-                        <div className="flex-1 bg-white/5 rounded-xl p-3 sm:p-4 border border-white/5 hover:bg-white/10 transition-colors cursor-default">
-                            <div className="h-2 w-16 sm:w-20 bg-white/10 rounded-full mb-3" />
-                            <p className="text-zinc-200 text-xs sm:text-sm leading-relaxed">
-                                🚀 <span className="text-white font-semibold">Just launched our new feature!</span> 
-                                <br/><br/>
-                                Building in public has been a wild ride. We learned that consistency is key.
-                                <br/><br/>
-                                <span className="text-blue-400">#BuildingInPublic #SaaS #Growth</span>
-                            </p>
-                        </div>
+                  <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-green-500/20">
+                    <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-green-400 text-xs font-bold">1</span>
                     </div>
-                    <div className="pt-2 flex justify-between items-center px-1 sm:px-2">
-                        <span className="text-[10px] sm:text-xs text-zinc-500 font-mono">Generated in 1.2s</span>
-                        <button className="flex items-center gap-2 text-[10px] sm:text-xs font-bold text-white bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-lg text-green-400 hover:bg-green-500/20 transition-colors">
-                            <Check className="w-3 h-3" /> Ready to Post
-                        </button>
+                    <div>
+                      <p className="text-white font-medium text-sm mb-1">Type your idea</p>
+                      <p className="text-zinc-400 text-xs">Just a few words is enough</p>
                     </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-green-500/20">
+                    <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-green-400 text-xs font-bold">2</span>
+                    </div>
+                    <div>
+                      <p className="text-white font-medium text-sm mb-1">AI creates perfect post</p>
+                      <p className="text-zinc-400 text-xs">In your brand voice, instantly</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-green-500/20">
+                    <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-green-400 text-xs font-bold">3</span>
+                    </div>
+                    <div>
+                      <p className="text-white font-medium text-sm mb-1">Review & post</p>
+                      <p className="text-zinc-400 text-xs">Or let AI schedule it for you</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Example Post Preview */}
+                <div className="mt-6 p-4 bg-gradient-to-br from-white/10 to-white/5 rounded-xl border border-white/20">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-bold">AI</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-white text-sm font-medium leading-relaxed">
+                        &quot;🚀 Just launched our biggest feature yet! After months of work, we&apos;re finally ready to share something special with you...&quot;
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                      <Check className="w-3.5 h-3.5 text-green-400" />
+                      <span>Ready to post</span>
+                    </div>
+                    <button className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-bold rounded-lg transition-colors">
+                      Post Now
+                    </button>
+                  </div>
+                </div>
+
+                {/* Bottom Summary */}
+                <div className="mt-6 p-4 bg-green-500/10 rounded-xl border border-green-500/30 flex items-center gap-3">
+                  <Check className="w-5 h-5 text-green-400 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-green-400 font-bold text-sm">Result: Done & Relaxed</p>
+                    <p className="text-zinc-400 text-xs">You just saved 1.5 hours of your life</p>
+                  </div>
                 </div>
               </div>
             </motion.div>
           </div>
+
+          {/* Bottom CTA */}
+          <motion.div variants={fadeInUp} className="text-center mt-16">
+            <p className="text-zinc-400 mb-4">Which one would you choose?</p>
+            <button 
+              onClick={handleStartTrial}
+              disabled={status !== 'idle'}
+              className="inline-flex cursor-pointer items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 rounded-xl font-semibold shadow-lg shadow-orange-500/30 transform hover:-translate-y-0.5 transition-all disabled:opacity-80 disabled:cursor-wait"
+            >
+              {renderButtonContent('Try The AI Way Free')}
+            </button>
+          </motion.div>
         </div>
       </motion.div>
 
@@ -488,7 +600,6 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      {/* ADDED: Scroll Animations to "How It Works" Section */}
       <section id="how-it-works" className="py-20 sm:py-24 lg:py-32 bg-gradient-to-b from-white/[0.02] to-transparent backdrop-blur-sm border-y border-white/[0.08] relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px]"></div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative">
@@ -582,7 +693,6 @@ export default function HomePage() {
       </section>
       
       {/* Footer */}
-      {/* ADDED: Subtle fade-in animation for Footer */}
       <motion.footer 
         className="border-t border-white/[0.08] bg-black/50 backdrop-blur-xl py-12 sm:py-14 lg:py-16"
         initial={{ opacity: 0 }}
