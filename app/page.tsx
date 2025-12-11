@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useSupabase } from '../components/SupabaseProvider';
-import { Bot, Zap, BarChart2, Lightbulb, TrendingUp, Star, Sparkles, ArrowRight, Users, Clock, Target, Loader2, Check } from 'lucide-react';
+import { Bot, Zap, BarChart2, Lightbulb, TrendingUp, Star, Sparkles, ArrowRight, Users, Clock, Target, Loader2, Check, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import TestimonialSection from '../components/TestimonialSection';
 
@@ -17,8 +17,8 @@ const staggerContainer = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.2
+      staggerChildren: 0.2,
+      delayChildren: 0.1
     }
   }
 };
@@ -68,7 +68,7 @@ const ReactLogo = ({ className }: { className?: string }) => (
         <ellipse rx="10" ry="4.5" cx="12" cy="12" transform="rotate(60 12 12)"/>
         <ellipse rx="10" ry="4.5" cx="12" cy="12" transform="rotate(120 12 12)"/>
      </g>
-  </svg>
+ </svg>
 );
 
 
@@ -135,7 +135,7 @@ export default function HomePage() {
   ];
 
   return (
-    <main className="min-h-[100dvh] bg-gradient-to-b from-black via-neutral-950 to-black text-white overflow-hidden">
+    <main className="min-h-screen bg-gradient-to-b from-black via-neutral-950 to-black text-white overflow-hidden">
       
       {/* CSS for Smooth Ticker Animation */}
       <style jsx global>{`
@@ -197,7 +197,7 @@ export default function HomePage() {
       </header>
       
       {/* Hero Section */}
-      <section className="relative flex flex-col items-center justify-center min-h-[90vh] px-4 sm:px-6 pt-20 sm:pt-24 pb-12 sm:pb-16">
+      <section className="relative flex flex-col items-center justify-center min-h-[100svh] px-4 sm:px-6 pt-24 pb-12 sm:pt-32 sm:pb-16">
         <motion.div 
           initial="hidden"
           animate="visible"
@@ -227,7 +227,7 @@ export default function HomePage() {
           </motion.p>
 
           {/* CTA Buttons */}
-          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 pt-6 sm:pt-8 px-4">
+          <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 pt-6 sm:pt-8 px-4 w-full sm:w-auto">
             <button 
               onClick={handleStartTrial}
               disabled={status !== 'idle'}
@@ -261,14 +261,20 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* --- BRAND TICKER SECTION (OFFICIAL LOGOS) --- */}
-      <section className="py-10 border-t border-white/[0.05] bg-white/[0.01]">
+      {/* --- BRAND TICKER SECTION --- */}
+      {/* ADDED: Framer Motion Animation to Ticker Container */}
+      <motion.section 
+        className="py-10 border-t border-white/[0.05] bg-white/[0.01]"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={fadeInUp}
+      >
         <div className="max-w-7xl mx-auto px-4">
           <p className="text-center text-xs font-semibold text-gray-500 uppercase tracking-widest mb-8">Powered by industry-leading technology</p>
           
           <div className="relative w-full overflow-hidden [mask-image:_linear-gradient(to_right,transparent_0,_black_32px,_black_calc(100%-32px),transparent_100%)] sm:[mask-image:_linear-gradient(to_right,transparent_0,_black_128px,_black_calc(100%-128px),transparent_100%)]">
             <div className="flex w-max animate-scroll">
-              {/* First Copy */}
               <div className="flex items-center gap-16 pr-16">
                 {brands.map((brand, i) => (
                   <div key={i} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group cursor-default">
@@ -277,7 +283,6 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-              {/* Duplicate Copy for Infinite Loop */}
               <div className="flex items-center gap-16 pr-16">
                 {brands.map((brand, i) => (
                   <div key={`dup-${i}`} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group cursor-default">
@@ -286,7 +291,6 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-              {/* Triplicate Copy to ensure no gaps on wide screens */}
               <div className="flex items-center gap-16 pr-16">
                 {brands.map((brand, i) => (
                   <div key={`trip-${i}`} className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors group cursor-default">
@@ -298,7 +302,115 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </motion.section>
+
+      {/* --- BEFORE & AFTER COMPARISON --- */}
+      <motion.div 
+         id="demo" 
+         className="py-16 sm:py-24 bg-zinc-900/30 border-y border-white/5 relative overflow-hidden"
+         initial="hidden"
+         whileInView="visible"
+         viewport={{ once: true, margin: "-100px" }}
+         variants={staggerContainer}
+      >
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[100px] -z-10" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[100px] -z-10" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <motion.div variants={fadeInUp} className="text-center mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
+              Stop Wasting Time on <br/>
+              <span className="bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">Manual Work</span>
+            </h2>
+            <p className="text-zinc-400 text-base sm:text-lg">See the difference AI makes in your daily workflow.</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <motion.div 
+              variants={fadeInUp} 
+              whileHover={{ scale: 1.02, rotate: -1 }} 
+              transition={{ type: "spring", stiffness: 300 }}
+              className="relative group"
+            >
+              <div className="absolute inset-0 bg-red-500/5 rounded-3xl transform -rotate-1 transition-transform group-hover:-rotate-2" />
+              <div className="relative p-6 sm:p-8 bg-black/80 border border-white/10 rounded-3xl backdrop-blur-xl">
+                <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-500/80" />
+                        <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
+                        <div className="w-3 h-3 rounded-full bg-green-500/80" />
+                    </div>
+                    <span className="ml-2 text-xs sm:text-sm font-mono text-red-400 tracking-wider">MANUAL_PROCESS.exe</span>
+                  </div>
+                </div>
+                <div className="space-y-4 sm:space-y-5 font-mono text-xs sm:text-sm text-zinc-500">
+                  <div className="flex gap-3 sm:gap-4 items-start opacity-70">
+                    <span className="text-zinc-600 min-w-[50px] sm:min-w-[60px]">09:00</span>
+                    <span className="line-through decoration-red-500/30">Open blank document...</span>
+                  </div>
+                  <div className="flex gap-3 sm:gap-4 items-start opacity-70">
+                    <span className="text-zinc-600 min-w-[50px] sm:min-w-[60px]">09:15</span>
+                    <span className="line-through decoration-red-500/30">Stare at blinking cursor...</span>
+                  </div>
+                  <div className="flex gap-3 sm:gap-4 items-start opacity-70">
+                    <span className="text-zinc-600 min-w-[50px] sm:min-w-[60px]">09:45</span>
+                    <span className="line-through decoration-red-500/30">Write 3 bad headlines...</span>
+                  </div>
+                  <div className="flex gap-3 sm:gap-4 items-start text-red-400/90 font-bold mt-4 pt-4 border-t border-white/5">
+                    <span className="min-w-[50px] sm:min-w-[60px]">10:30</span>
+                    <span>Give up & scroll Instagram.</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div 
+              variants={fadeInUp} 
+              whileHover={{ scale: 1.03, y: -5 }} 
+              transition={{ type: "spring", stiffness: 300 }}
+              className="relative group"
+            >
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-3xl blur opacity-30 group-hover:opacity-50 transition-opacity duration-500" />
+              <div className="relative p-6 sm:p-8 bg-zinc-900 border border-white/10 rounded-3xl shadow-2xl backdrop-blur-xl bg-opacity-80">
+                <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-2">
+                        <div className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]" /> 
+                        <div className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]" /> 
+                        <div className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]" /> 
+                    </div>
+                    <span className="ml-2 text-xs sm:text-sm font-mono text-green-400 tracking-wider">ContentAI Flow</span>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                    <div className="flex gap-3 sm:gap-4 items-start">
+                        <div className="p-2.5 bg-gradient-to-br from-orange-500 to-pink-600 rounded-xl shadow-lg">
+                            <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                        </div>
+                        <div className="flex-1 bg-white/5 rounded-xl p-3 sm:p-4 border border-white/5 hover:bg-white/10 transition-colors cursor-default">
+                            <div className="h-2 w-16 sm:w-20 bg-white/10 rounded-full mb-3" />
+                            <p className="text-zinc-200 text-xs sm:text-sm leading-relaxed">
+                                🚀 <span className="text-white font-semibold">Just launched our new feature!</span> 
+                                <br/><br/>
+                                Building in public has been a wild ride. We learned that consistency is key.
+                                <br/><br/>
+                                <span className="text-blue-400">#BuildingInPublic #SaaS #Growth</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div className="pt-2 flex justify-between items-center px-1 sm:px-2">
+                        <span className="text-[10px] sm:text-xs text-zinc-500 font-mono">Generated in 1.2s</span>
+                        <button className="flex items-center gap-2 text-[10px] sm:text-xs font-bold text-white bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-lg text-green-400 hover:bg-green-500/20 transition-colors">
+                            <Check className="w-3 h-3" /> Ready to Post
+                        </button>
+                    </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
 
       {/* Stats Section */}
       <section className="py-16 sm:py-20 lg:py-24 border-y border-white/[0.08] bg-gradient-to-b from-white/[0.02] to-transparent backdrop-blur-sm relative overflow-hidden">
@@ -376,18 +488,31 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
+      {/* ADDED: Scroll Animations to "How It Works" Section */}
       <section id="how-it-works" className="py-20 sm:py-24 lg:py-32 bg-gradient-to-b from-white/[0.02] to-transparent backdrop-blur-sm border-y border-white/[0.08] relative overflow-hidden">
         <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px]"></div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative">
-          <div className="text-center mb-16 sm:mb-20 lg:mb-24">
+          <motion.div 
+             initial="hidden"
+             whileInView="visible"
+             viewport={{ once: true }}
+             variants={fadeInUp}
+             className="text-center mb-16 sm:mb-20 lg:mb-24"
+          >
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight px-4">
               Get started in
               <span className="bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 bg-clip-text text-transparent"> minutes</span>
             </h2>
             <p className="text-base sm:text-lg lg:text-xl text-gray-400 font-light px-4">Three simple steps to transform your content game</p>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-7 lg:gap-8 relative">
+          <motion.div 
+             initial="hidden"
+             whileInView="visible"
+             viewport={{ once: true, margin: "-50px" }}
+             variants={staggerContainer}
+             className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-7 lg:gap-8 relative"
+          >
             {/* Connection Lines */}
             <div className="hidden md:block absolute top-16 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
             
@@ -407,7 +532,7 @@ export default function HomePage() {
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -457,7 +582,14 @@ export default function HomePage() {
       </section>
       
       {/* Footer */}
-      <footer className="border-t border-white/[0.08] bg-black/50 backdrop-blur-xl py-12 sm:py-14 lg:py-16">
+      {/* ADDED: Subtle fade-in animation for Footer */}
+      <motion.footer 
+        className="border-t border-white/[0.08] bg-black/50 backdrop-blur-xl py-12 sm:py-14 lg:py-16"
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        viewport={{ once: true }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-12 mb-10 sm:mb-12">
             <div className="col-span-2 sm:col-span-2 lg:col-span-1">
@@ -497,7 +629,7 @@ export default function HomePage() {
             <p>&copy; {new Date().getFullYear()} ContentAI. All rights reserved.</p>
           </div>
         </div>
-      </footer>
+      </motion.footer>
     </main>
   );
 }
