@@ -5,171 +5,175 @@ import OpenAI from 'openai';
 
 // 1. Define Types
 interface BrandMetadata {
-  brand_name?: string;
-  brand_tone?: string;
-  brand_keywords?: string;
-  is_anonymous?: boolean; 
+  brand_name?: string;
+  brand_tone?: string;
+  brand_keywords?: string;
+  is_anonymous?: boolean; 
 }
 
 interface CreditData {
-  count: number;
+  count: number;
 }
 
 interface GenerationRecord {
-  user_id: string;
-  prompt: string;
-  content: string;
+  user_id: string;
+  prompt: string;
+  content: string;
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    // 2. Initialize OpenAI
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+  try {
+    // 2. Initialize OpenAI
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
-    // 3. Initialize Supabase (Cookie-Aware)
-    const cookieStore = await cookies();
-    
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      return NextResponse.json({ error: 'Server Configuration Error' }, { status: 500 });
-    }
+    // 3. Initialize Supabase (Cookie-Aware)
+    const cookieStore = await cookies();
+    
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return NextResponse.json({ error: 'Server Configuration Error' }, { status: 500 });
+    }
 
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              );
-            } catch {
-              // API routes are read-only for cookies
-            }
-          },
-        },
-      }
-    );
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              );
+            } catch {
+              // API routes are read-only for cookies
+            }
+          },
+        },
+      }
+    );
 
-    // 4. Validate User
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // 4. Validate User
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized: Please refresh the page.' }, { status: 401 });
-    }
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized: Please refresh the page.' }, { status: 401 });
+    }
 
-    // 5. Check Credits (MODIFIED LOGIC)
-    const { data: creditData, error: creditError } = await supabase
-      .from('credits')
-      .select('count')
-      .eq('user_id', user.id)
-      .single<CreditData>();
+    // 5. Check Credits
+    const { data: creditData, error: creditError } = await supabase
+      .from('credits')
+      .select('count')
+      .eq('user_id', user.id)
+      .single<CreditData>();
 
-    if (creditError || !creditData || creditData.count < 1) {
-        // Determine if the user is a guest based on session metadata/user_metadata
+    if (creditError || !creditData || creditData.count < 1) {
         const isGuest = user.is_anonymous || user.user_metadata?.is_anonymous === true; 
-        
         const error_code = isGuest ? 'TRIAL_EXHAUSTED' : 'CREDIT_EXHAUSTED';
 
-      return NextResponse.json(
-        { 
-            error: error_code, // Returns the specific code for the front end
+      return NextResponse.json(
+        { 
+            error: error_code, 
             message: 'You have no content tokens left.'
         }, 
-        { status: 403 } // Use 403 Forbidden status
-      );
-    }
+        { status: 403 }
+      );
+    }
 
-    // 6. Get User Prompt AND Platform
-    const body = await request.json();
-    const { prompt, platform = 'linkedin' } = body; // Default to linkedin if missing
+    // 6. Get User Prompt AND Platform
+    const body = await request.json();
+    const { prompt, platform = 'linkedin' } = body; 
 
-    if (!prompt) {
-      return NextResponse.json({ error: 'No prompt provided.' }, { status: 400 });
-    }
+    if (!prompt) {
+      return NextResponse.json({ error: 'No prompt provided.' }, { status: 400 });
+    }
 
-    // 7. Prepare Smart System Prompt
-    // NOTE: Ensure is_anonymous flag is retrieved from user metadata if possible for consistency
-    const { brand_name, brand_tone, brand_keywords } = (user.user_metadata ?? {}) as BrandMetadata;
+    // 7. Prepare Smart System Prompt (IMPROVED)
+    const { brand_name, brand_tone, brand_keywords } = (user.user_metadata ?? {}) as BrandMetadata;
 
-    // Platform Logic Switch
-    let platformRules = "";
-    switch (platform.toLowerCase()) {
-        case 'twitter':
-            platformRules = "Format: A short, punchy tweet (max 280 chars). Use 2-3 relevant hashtags. Be conversational and direct.";
-            break;
-        case 'instagram':
-            platformRules = "Format: An engaging visual caption. Use emojis to break up text. Add a block of 5-10 relevant hashtags at the bottom.";
-            break;
-        case 'linkedin':
-        default:
-            platformRules = "Format: A professional LinkedIn post. Use short paragraphs, bullet points for readability, and a clear call-to-action.";
-            break;
-    }
+    let platformRules = "";
+    switch (platform.toLowerCase()) {
+        case 'twitter':
+            platformRules = "Format: A single, high-impact tweet or a short thread (2 tweets max). Focus on a contrarian idea or a sharp insight. Max 1-2 hashtags.";
+            break;
+        case 'instagram':
+            platformRules = "Format: A rich, storytelling caption. Start with a hook that stops the scroll. Focus on the visual description or the 'feeling' behind the topic. Max 3 hashtags.";
+            break;
+        case 'linkedin':
+        default:
+            platformRules = "Format: A thought-leadership post. Start with a counter-intuitive statement. Use short, punchy paragraphs. Focus on business lessons or personal growth. Max 3 hashtags.";
+            break;
+    }
 
-    const systemPrompt = `You are ContentAI, an expert social media strategist.
-    
-    BRAND IDENTITY:
-    - Name: ${brand_name || "The User's Brand"}
-    - Tone: ${brand_tone || "Professional and Engaging"}
-    - Keywords: ${brand_keywords || "None provided"}
+    // --- THE "WOW FACTOR" SYSTEM PROMPT ---
+    const systemPrompt = `
+    You are an elite, award-winning Ghostwriter known for "stopping the scroll." You write for top CEOs and creative visionaries.
+    You DO NOT write like a robot. You write like a human who thinks differently.
 
-    TARGET PLATFORM: **${platform.toUpperCase()}**
-    ${platformRules}
+    BRAND CONTEXT:
+    - Voice: ${brand_tone || "Bold, Insightful, and Authentic"}
+    - Focus: ${brand_keywords || "Growth, Innovation, Leadership"}
 
-    WRITING RULES:
-    1. Output ONLY the social media post content.
-    2. Adapt tone to the platform requested.
-    3. CRITICAL: If the user asks for non-marketing content (code, math, etc), politely decline.`;
+    YOUR MISSION:
+    Write a **${platform.toUpperCase()}** post about the user's topic.
 
-    // 8. Call OpenAI
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.7,
-      max_tokens: 600, // Increased token limit for LinkedIn posts
-    });
+    STRICT WRITING RULES:
+    1. **NO CLICHÉS:** Banned words: "Unleash", "Unlock", "Delve", "Tapestry", "Game-changer", "In today's fast-paced world".
+    2. **THE "WOW" FACTOR:** Find a unique angle. Don't just describe the topic; explain *why it matters* in a way nobody else has. Use metaphors. Be provocative.
+    3. **HOOK FIRST:** The first sentence must be impossible to ignore.
+    4. **LESS IS MORE:** Use 2-3 powerful hashtags max. The value is in the text, not the tags.
+    5. **FORMATTING:** Use **bold** for emphasis. Use line breaks for readability. 
+    6. **PLATFORM NATIVE:** ${platformRules}
 
-    const aiContent = completion.choices?.[0]?.message?.content;
+    User Request: ${prompt}
+    `;
 
-    if (!aiContent) {
-      throw new Error('Failed to generate content from AI.');
-    }
+    // 8. Call OpenAI
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o', 
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.85, // High creativity
+      max_tokens: 700,
+    });
 
-    // 9. Deduct Credit
-    const { error: updateError } = await supabase
-      .from('credits')
-      .update({ count: creditData.count - 1 })
-      .eq('user_id', user.id);
+    const aiContent = completion.choices?.[0]?.message?.content;
 
-    if (updateError) {
-        console.error("Error deducting credit:", updateError);
-    }
+    if (!aiContent) {
+      throw new Error('Failed to generate content from AI.');
+    }
 
-    // 10. Save to History (Include Platform tag in prompt for clarity)
-    await supabase.from('generations').insert<GenerationRecord>({
-      user_id: user.id,
-      prompt: `[${platform}] ${prompt}`, 
-      content: aiContent,
-    });
+    // 9. Deduct Credit
+    const { error: updateError } = await supabase
+      .from('credits')
+      .update({ count: creditData.count - 1 })
+      .eq('user_id', user.id);
 
-    // 11. Return Result
-    return NextResponse.json({ content: aiContent });
+    if (updateError) {
+        console.error("Error deducting credit:", updateError);
+    }
 
-  } catch (error: unknown) {
-    console.error('Generate Route Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
-  }
+    // 10. Save to History
+    await supabase.from('generations').insert<GenerationRecord>({
+      user_id: user.id,
+      prompt: `[${platform}] ${prompt}`, 
+      content: aiContent,
+    });
+
+    // 11. Return Result
+    return NextResponse.json({ content: aiContent });
+
+  } catch (error: unknown) {
+    console.error('Generate Route Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json(
+      { error: errorMessage },
+      { status: 500 }
+    );
+  }
 }

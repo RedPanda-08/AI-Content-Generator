@@ -1,61 +1,75 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react'; 
-import { Send, Bot, Sparkles, User, Copy, Check, BarChart2, Loader2, Linkedin, Twitter, Instagram, X } from 'lucide-react'; 
+import { Send, Bot, Sparkles, User, Copy, Check, BarChart2, Loader2, Linkedin, Twitter, Instagram, X, Calendar as CalendarIcon, Clock, AlertTriangle } from 'lucide-react'; 
 import Textarea from 'react-textarea-autosize'; 
 import { useSupabase } from '../../components/SupabaseProvider'; 
 import Link from 'next/link'; 
+import { motion, AnimatePresence } from 'framer-motion';
+import { createBrowserClient } from '@supabase/ssr'; 
 
 interface SupabaseContextType {
-  session: { user?: { is_anonymous?: boolean }; access_token?: string } | null;
+  session: { user?: { id: string; is_anonymous?: boolean }; access_token?: string } | null;
   initialized: boolean;
 }
 
-// --- TYPEWRITER COMPONENT (Improved with Formatting) ---
+type AnySupabaseClient = {
+  from: (table: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    insert: (data: any) => Promise<{ error: any }>
+  }
+}
+
+// --- TYPEWRITER COMPONENT (Strict Cleaning) ---
 const Typewriter = ({ text, onComplete }: { text: string; onComplete?: () => void }) => {
   const [displayedText, setDisplayedText] = useState('');
   const indexRef = useRef(0);
 
-  useEffect(() => {
-    // If text is empty, don't do anything
-    if (!text) return;
+  // STRICT CLEANING FUNCTION
+  // 1. Removes all asterisks (*).
+  // 2. Removes weird hidden characters.
+  // 3. Removes leading quotes or spaces.
+  // 4. Ensures the first character is a Capital Letter.
+  const cleanAndFormat = (input: string) => {
+    if (!input) return "";
+    
+    let cleaned = input
+        .replace(/[\uFFFD\uFEFF]/g, '') // Remove invisible Unicode errors
+        .replace(/\*/g, '')             // Remove ALL asterisks
+        .replace(/^["'\s]+/, '');       // Remove quotes/spaces at the start
 
-    // Reset when text changes drastically
+    if (cleaned.length > 0) {
+        cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+    }
+    return cleaned;
+  };
+
+  const processedText = cleanAndFormat(text);
+
+  useEffect(() => {
+    if (!processedText) return;
+    
     indexRef.current = 0;
     setDisplayedText('');
     
     const intervalId = setInterval(() => {
-      if (indexRef.current < text.length) {
-        setDisplayedText((prev) => prev + text.charAt(indexRef.current));
+      if (indexRef.current < processedText.length) {
+        setDisplayedText((prev) => prev + processedText.charAt(indexRef.current));
         indexRef.current++;
       } else {
         clearInterval(intervalId);
         if (onComplete) onComplete();
       }
-    }, 10); // Speed: 10ms per character
+    }, 8); // Fast typing speed
 
     return () => clearInterval(intervalId);
-  }, [text, onComplete]);
-
-  // Helper function to format bold text (**text**) and remove asterisks
-  const formatContent = (content: string) => {
-    // Split by the bold markdown syntax
-    const parts = content.split(/(\*\*.*?\*\*)/g);
-    
-    return parts.map((part, index) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        // Remove the asterisks and return bold text
-        return <strong key={index} className="text-white font-bold">{part.slice(2, -2)}</strong>;
-      }
-      return part;
-    });
-  };
+  }, [processedText, onComplete]);
 
   return (
-    <div className="text-gray-200 leading-loose font-['Inter',sans-serif] text-sm sm:text-[15px]" style={{ lineHeight: '1.8', letterSpacing: '0.01em' }}>
+    <div className="text-gray-300 leading-relaxed font-['Inter',sans-serif] text-sm sm:text-[15px]" style={{ lineHeight: '1.8', letterSpacing: '0.01em' }}>
       {displayedText.split('\n').map((paragraph, index) => (
         paragraph.trim() ? (
-          <p key={index} className="mb-3 sm:mb-4 last:mb-0 animate-fadeIn">
-            {formatContent(paragraph)}
+          <p key={index} className="mb-3 last:mb-0 animate-fadeIn">
+            {paragraph}
           </p>
         ) : (
           <br key={index} />
@@ -64,29 +78,44 @@ const Typewriter = ({ text, onComplete }: { text: string; onComplete?: () => voi
     </div>
   );
 };
-// ---------------------------
 
 export default function GeneratorPage() {
   const context = useSupabase() as SupabaseContextType | null;
   const { session, initialized } = context || { session: null, initialized: false };
+  
+  // Direct client for DB operations to prevent "client.from is not a function"
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+  
   const [isReady, setIsReady] = useState(false);
-  const user = session?.user;
   const [prompt, setPrompt] = useState('');
   const [platform, setPlatform] = useState('linkedin');
   const [submittedPrompt, setSubmittedPrompt] = useState('');
   const [generatedContent, setGeneratedContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // UX States
   const [copySuccess, setCopySuccess] = useState(false);
-  const [analysis, setAnalysis] = useState<string | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isTypingComplete, setIsTypingComplete] = useState(false);
   const [showCreditModal, setShowCreditModal] = useState(false);
   const [isGuestAccount, setIsGuestAccount] = useState(false);
-  
-  // State to control when buttons appear
-  const [isTypingComplete, setIsTypingComplete] = useState(false);
 
-  // Stable callback to prevent infinite re-render loop
+  // Analysis States
+  const [analysis, setAnalysis] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Scheduling States
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [scheduledDate, setScheduledDate] = useState('');
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [scheduleSuccess, setScheduleSuccess] = useState(false);
+
+  // Ref specifically for the scheduling dropdown container
+  const scheduleContainerRef = useRef<HTMLDivElement>(null);
+
   const handleTypingComplete = useCallback(() => {
     setIsTypingComplete(true);
   }, []);
@@ -106,6 +135,19 @@ export default function GeneratorPage() {
     return () => clearTimeout(timer);
   }, [initialized, context]);
 
+  // Handle clicking outside the popup to close it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (scheduleContainerRef.current && !scheduleContainerRef.current.contains(event.target as Node)) {
+        setShowDatePicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     setSubmittedPrompt(prompt);
@@ -113,8 +155,10 @@ export default function GeneratorPage() {
     setError(null);
     setGeneratedContent('');
     setAnalysis(null); 
-    setIsTypingComplete(false); // Reset typing status
+    setIsTypingComplete(false); 
     setShowCreditModal(false); 
+    setScheduleSuccess(false);
+    setShowDatePicker(false);
 
     try {
       const accessToken = session?.access_token;
@@ -157,7 +201,9 @@ export default function GeneratorPage() {
   
   const handleCopy = () => {
     if (!generatedContent) return;
-    navigator.clipboard.writeText(generatedContent).then(() => {
+    // Clean before copying to clipboard too
+    const cleanText = generatedContent.replace(/\*/g, '').trim(); 
+    navigator.clipboard.writeText(cleanText).then(() => {
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     });
@@ -192,6 +238,52 @@ export default function GeneratorPage() {
     }
   };
 
+  const handleScheduleConfirm = async () => {
+    if (!scheduledDate || !generatedContent || !session?.user) return;
+    setIsScheduling(true);
+    setError(null);
+
+    // Clean content before saving to DB
+    const cleanTitle = generatedContent.replace(/\*/g, '').trim();
+
+    try {
+        const client = supabase as unknown as AnySupabaseClient;
+        
+        // Exact DB Mapping from your screenshot:
+        // user_id -> user_id
+        // title -> cleanTitle (Stores content)
+        // platform -> platform
+        // date -> scheduledDate (Stores date)
+        const { error } = await client.from('content_schedule').insert({
+            user_id: session.user.id,
+            title: cleanTitle, 
+            platform: platform,
+            date: scheduledDate, 
+        });
+
+        if (error) throw error;
+
+        setScheduleSuccess(true);
+        setTimeout(() => {
+            setShowDatePicker(false);
+            setScheduleSuccess(false);
+        }, 1500);
+        
+    } catch (err: unknown) {
+        let msg = "Failed to schedule.";
+        if (err instanceof Error) {
+            msg = err.message;
+        } else if (typeof err === "object" && err !== null && "message" in err) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            msg = (err as any).message;
+        }
+        console.error("Schedule error:", msg);
+        setError(msg);
+    } finally {
+        setIsScheduling(false);
+    }
+  };
+
   if (!isReady) {
       return (
         <div className="flex h-[100svh] items-center justify-center">
@@ -221,17 +313,17 @@ export default function GeneratorPage() {
         }
       `}</style>
 
-      {/* --- NOTIFICATION BANNER --- */}
+      {/* --- NOTIFICATION BANNER (Credits Done) --- */}
       {showCreditModal && (
-          <div className="w-full mt-2 sm:mt-6 mb-2 animate-fadeIn flex-shrink-0">
+          <div className="w-full mt-2 sm:mt-6 mb-2 animate-fadeIn flex-shrink-0 z-20">
               <div className="bg-zinc-900 border border-red-500/50 rounded-xl shadow-lg shadow-red-500/10 p-4 relative flex flex-col gap-3">
                   <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
                           <div className="p-2 bg-red-500/10 rounded-full flex-shrink-0">
-                            <Sparkles className="w-5 h-5 text-red-400" />
+                             {isGuestAccount ? <Sparkles className="w-5 h-5 text-red-400" /> : <AlertTriangle className="w-5 h-5 text-red-400" />}
                           </div>
                           <h3 className="text-base font-bold text-white leading-tight">
-                              {isGuestAccount ? 'Trial Complete!' : 'Out of Tokens'}
+                              {isGuestAccount ? 'Trial Complete!' : 'Credits Depleted'}
                           </h3>
                       </div>
                       <button 
@@ -245,7 +337,7 @@ export default function GeneratorPage() {
                   <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
                       {isGuestAccount 
                           ? 'Your 3 free posts are used. Sign up now to get 500 more tokens instantly.'
-                          : 'You have used all tokens. Upgrade to continue generating.'
+                          : 'You have used all your available credits. Get more to continue generating content.'
                       }
                   </p>
 
@@ -254,7 +346,7 @@ export default function GeneratorPage() {
                           href={isGuestAccount ? '/login' : '/pricing'}
                           className="flex-1 py-2 text-center bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-md"
                       >
-                          {isGuestAccount ? 'Get 500 Tokens' : 'Upgrade'}
+                          {isGuestAccount ? 'Get 500 Tokens' : 'Get More Credits'}
                       </Link>
                   </div>
               </div>
@@ -324,7 +416,7 @@ export default function GeneratorPage() {
                 </div>
               ) : (
                 <div className="flex-1 min-w-0">
-                  <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 animate-fadeIn">
+                  <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 animate-fadeIn relative">
                     
                     {/* TYPEWRITER COMPONENT */}
                     <Typewriter 
@@ -338,6 +430,54 @@ export default function GeneratorPage() {
                             {copySuccess ? <Check size={12} className="sm:w-3.5 sm:h-3.5" /> : <Copy size={12} className="sm:w-3.5 sm:h-3.5" />}
                             {copySuccess ? 'Copied' : 'Copy'}
                         </button>
+                        
+                        {/* --- SCHEDULE BUTTON WRAPPER FOR POPOVER --- */}
+                        <div className="relative" ref={scheduleContainerRef}>
+                            <button 
+                                onClick={() => setShowDatePicker(!showDatePicker)} 
+                                className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors ${showDatePicker ? 'bg-white/20 text-white' : ''}`}
+                            >
+                                <CalendarIcon size={12} className="sm:w-3.5 sm:h-3.5" />
+                                Schedule
+                            </button>
+
+                            {/* --- THE FLOATING POPOVER (Floating BELOW the button) --- */}
+                            <AnimatePresence>
+                                {showDatePicker && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 5, scale: 0.98 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 5, scale: 0.98 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="absolute right-0 top-full mt-2 w-64 sm:w-72 bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl z-50 p-4"
+                                    >
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-xs font-bold text-gray-300 flex items-center gap-2">
+                                                <Clock className="w-3.5 h-3.5 text-orange-500" /> 
+                                                Pick Date & Time
+                                            </span>
+                                        </div>
+                                        
+                                        <input 
+                                            type="datetime-local" 
+                                            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-white text-xs focus:outline-none focus:border-orange-500 mb-3 [color-scheme:dark]"
+                                            onChange={(e) => setScheduledDate(e.target.value)}
+                                        />
+
+                                        <button 
+                                            onClick={handleScheduleConfirm}
+                                            disabled={!scheduledDate || isScheduling}
+                                            className="w-full py-2 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg font-semibold text-xs text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98]"
+                                        >
+                                            {isScheduling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : scheduleSuccess ? <Check className="w-3.5 h-3.5" /> : 'Confirm'}
+                                            {scheduleSuccess && ' Done!'}
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                        {/* ------------------------------------------- */}
+
                         <button onClick={handleAnalyze} disabled={isAnalyzing} className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 rounded-lg transition-colors disabled:opacity-50">
                             {isAnalyzing ? <Loader2 size={12} className="sm:w-3.5 sm:h-3.5 animate-spin" /> : <BarChart2 size={12} className="sm:w-3.5 sm:h-3.5" />}
                             Analyze
@@ -359,24 +499,13 @@ export default function GeneratorPage() {
                         ) : (
                           <div className="text-xs sm:text-sm text-blue-100/90 leading-relaxed font-['Inter',sans-serif] space-y-2 sm:space-y-3" style={{ lineHeight: '1.8' }}>
                             {analysis?.split('\n').map((line, index) => {
-                              const cleanLine = line
-                                .replace(/\*\*/g, '')
-                                .replace(/\*/g, '')
-                                .replace(/^#+\s*/, '')
-                                .trim();
-                              
+                              const cleanLine = line.replace(/\*\*/g, '').replace(/\*/g, '').replace(/^#+\s*/, '').trim();
                               if (!cleanLine) return null;
-                              
                               const isHeading = cleanLine.length < 60 && /^[A-Z]/.test(cleanLine) && !cleanLine.includes('.');
-                              
                               return isHeading ? (
-                                <h5 key={index} className="text-blue-200 font-semibold mt-3 sm:mt-4 first:mt-0 text-xs sm:text-[15px]">
-                                  {cleanLine}
-                                </h5>
+                                <h5 key={index} className="text-blue-200 font-semibold mt-3 sm:mt-4 first:mt-0 text-xs sm:text-[15px]">{cleanLine}</h5>
                               ) : (
-                                <p key={index} className="text-blue-100/80">
-                                  {cleanLine}
-                                </p>
+                                <p key={index} className="text-blue-100/80">{cleanLine}</p>
                               );
                             })}
                           </div>
@@ -395,7 +524,6 @@ export default function GeneratorPage() {
       <div className="mt-auto flex-shrink-0 pb-6 sm:pb-6">
         <div className="relative bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl focus-within:border-orange-500/50 transition-colors">
           
-          {/* Platform Selector Header */}
           <div className="flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 border-b border-white/5">
             <span className="text-[10px] sm:text-xs text-gray-500 font-medium">Target Platform:</span>
             <div className="flex gap-1 flex-wrap">
