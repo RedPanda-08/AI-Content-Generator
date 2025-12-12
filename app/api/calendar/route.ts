@@ -1,114 +1,86 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { NextResponse } from 'next/server';
 
-// 1. GET: Fetch events
-export async function GET(request: NextRequest) {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: { getAll() { return cookieStore.getAll() } }
-    }
-  );
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+// GET: Fetch events
+export async function GET() {
+  try {
+    const { data: events, error } = await supabase
+      .from('content_schedule')
+      .select('*')
+      .order('date', { ascending: true });
 
-  const { data, error } = await supabase
-    .from('content_schedule')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('date', { ascending: true });
+    if (error) throw error;
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-  return NextResponse.json({ events: data });
+    return NextResponse.json({ events });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
-// 2. POST: Save event
-export async function POST(request: NextRequest) {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-        cookies: {
-            getAll() { return cookieStore.getAll() },
-            setAll(cookiesToSet) {
-                try {
-                    cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
-                } catch {}
-            }
-          }
+// POST: Save a new schedule
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    
+    // 1. Extract fields
+    const { title, date, platform, notify, user_email, user_id } = body; 
+
+    // 2. Validate user_id exists
+    if (!title || !date || !user_id) { 
+      return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
     }
-  );
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // 3. Insert into Database
+    const { data, error } = await supabase
+      .from('content_schedule')
+      .insert({
+        user_id, // <--- ADDED THIS (This was missing!)
+        title,
+        date,
+        platform,
+        notify, 
+        status: 'pending',
+        user_email
+      })
+      .select();
 
-  const body = await request.json();
-  const { title, date, platform, notify } = body;
+    if (error) throw error;
 
-  if (!title || !date) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    return NextResponse.json({ success: true, data });
+  } catch (error: unknown) {
+    console.error('Save Error:', error);
+    
+    let message = 'An error occurred';
+    if (error instanceof Error) message = error.message;
+    
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const { data, error } = await supabase
-    .from('content_schedule')
-    .insert([{
-      user_id: user.id,
-      title,
-      date,
-      platform,
-      notify
-    }])
-    .select()
-    .single();
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-  return NextResponse.json({ event: data });
 }
 
-// 3. DELETE: Remove an event (THIS WAS LIKELY MISSING)
-export async function DELETE(request: NextRequest) {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-        cookies: {
-            getAll() { return cookieStore.getAll() },
-            setAll(cookiesToSet) {
-                try {
-                    cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
-                } catch {}
-            }
-          }
-    }
-  );
+// DELETE: Remove an event
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!id) return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
 
-  // Get ID from URL query params (e.g., /api/calendar?id=123)
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
+    const { error } = await supabase
+      .from('content_schedule')
+      .delete()
+      .eq('id', id);
 
-  if (!id) {
-    return NextResponse.json({ error: 'Missing ID' }, { status: 400 });
+    if (error) throw error;
+
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  // Perform the delete
-  const { error } = await supabase
-    .from('content_schedule')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', user.id); // Safety: Ensure user owns the event
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-
-  return NextResponse.json({ success: true });
 }

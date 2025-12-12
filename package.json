@@ -13,7 +13,7 @@
     "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/auth-ui-shared": "^0.1.8",
     "@supabase/ssr": "^0.7.0",
-    "@supabase/supabase-js": "^2.86.0",
+    "@supabase/supabase-js": "^2.87.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.23.25",
     "lucide-react": "^0.545.0",
@@ -23,7 +23,8 @@
     "react-big-calendar": "^1.19.4",
     "react-dom": "19.1.0",
     "react-textarea-autosize": "^8.5.9",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "resend": "^6.6.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
