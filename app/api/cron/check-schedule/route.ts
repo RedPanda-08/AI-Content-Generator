@@ -42,7 +42,7 @@ export async function GET(request: Request) {
         for (const post of posts) {
             const emailContent = `
                 <h1>Your Content is Ready!</h1>
-                <p>You scheduled this for ${new Date(post.date).toLocaleString()}:</p>
+                <p>You scheduled this for ${new Date(post.date).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })}:</p>
                 <blockquote style="background: #f9f9f9; padding: 10px; border-left: 4px solid orange;">
                   ${post.title}
                 </blockquote>
