@@ -12,7 +12,6 @@ interface SupabaseContextType {
   initialized: boolean;
 }
 
-// Helper type to avoid linting errors with dynamic Supabase clients
 type AnySupabaseClient = {
   from: (table: string) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,7 +19,7 @@ type AnySupabaseClient = {
   }
 }
 
-// --- TYPEWRITER COMPONENT (Strict Cleaning) ---
+// --- TYPEWRITER COMPONENT ---
 const Typewriter = ({ text, onComplete }: { text: string; onComplete?: () => void }) => {
   const [displayedText, setDisplayedText] = useState('');
   const indexRef = useRef(0);
@@ -48,7 +47,6 @@ const Typewriter = ({ text, onComplete }: { text: string; onComplete?: () => voi
 
   useEffect(() => {
     if (!processedText) return;
-    
     indexRef.current = 0;
     setDisplayedText('');
     
@@ -113,11 +111,27 @@ export default function GeneratorPage() {
   const [isScheduling, setIsScheduling] = useState(false);
   const [scheduleSuccess, setScheduleSuccess] = useState(false);
 
-  // Ref specifically for the scheduling dropdown container
   const scheduleContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Ref for the scrollable area
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll function
+  const scrollToBottom = () => {
+    if (scrollRef.current) {
+        // Use a slight timeout to ensure DOM update
+        setTimeout(() => {
+            scrollRef.current?.scrollTo({
+                top: scrollRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }, 100);
+    }
+  };
 
   const handleTypingComplete = useCallback(() => {
     setIsTypingComplete(true);
+    scrollToBottom(); // Scroll down when typing finishes
   }, []);
 
   useEffect(() => {
@@ -134,10 +148,6 @@ export default function GeneratorPage() {
     }, 2000);
     return () => clearTimeout(timer);
   }, [initialized, context]);
-
-  // --- FIXED: REMOVED THE GLOBAL 'mousedown' LISTENER ---
-  // The listener was causing the date picker to close when clicked.
-  // We now use a Backdrop Strategy in the JSX.
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -220,6 +230,7 @@ export default function GeneratorPage() {
         }
         const data = await response.json();
         setAnalysis(data.analysis || data.content || "No analysis returned");
+        scrollToBottom(); // Scroll down when analysis is ready
     } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         setAnalysis(`Error: ${errorMessage}`);
@@ -282,7 +293,7 @@ export default function GeneratorPage() {
 
   if (!isReady) {
       return (
-        <div className="flex h-[100svh] items-center justify-center">
+        <div className="flex h-[100dvh] items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
         </div>
       );
@@ -296,7 +307,9 @@ export default function GeneratorPage() {
   };
 
   return (
-    <div className="flex flex-col h-[100svh] overflow-hidden max-w-4xl mx-auto px-4 pt-20 sm:pt-4 relative">
+    // FIX 1: Changed h-[100svh] to h-[100dvh] for mobile keyboard support
+    // This allows the container to shrink when keyboard opens
+    <div className="flex flex-col h-[100dvh] overflow-hidden max-w-4xl mx-auto px-4 pt-20 sm:pt-4 relative">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -313,11 +326,7 @@ export default function GeneratorPage() {
       <AnimatePresence>
         {showDatePicker && (
             <>
-                {/* 1. MOBILE LAYOUT: Full Screen Modal in Center */}
-                {/* Z-60 ensures it covers everything on mobile */}
                 <div className="fixed inset-0 z-[60] flex md:hidden items-center justify-center p-4">
-                    
-                    {/* Dark Backdrop for Mobile */}
                     <motion.div 
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -325,13 +334,11 @@ export default function GeneratorPage() {
                         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                         onClick={() => setShowDatePicker(false)}
                     />
-                    
-                    {/* Centered Card for Mobile */}
                      <motion.div 
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        onClick={(e) => e.stopPropagation()} // Stop click from hitting backdrop
+                        onClick={(e) => e.stopPropagation()} 
                         className="bg-[#121212] border border-white/10 p-6 rounded-3xl shadow-2xl w-full max-w-xs relative overflow-hidden z-10"
                     >
                          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -z-10" />
@@ -364,8 +371,6 @@ export default function GeneratorPage() {
                     </motion.div>
                 </div>
 
-                {/* 2. DESKTOP BACKDROP: Transparent Click-Outside */}
-                {/* Z-40 sits behind the Z-50 popover but above page content */}
                 <div 
                     className="hidden md:block fixed inset-0 z-40 bg-transparent" 
                     onClick={() => setShowDatePicker(false)}
@@ -415,8 +420,10 @@ export default function GeneratorPage() {
       )}
 
       {/* MAIN CONTENT AREA */}
-      <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar pb-2">
-         <div className="pb-32 sm:pb-24 min-h-full">
+      {/* FIX 2: Added 'min-h-0' to ensure this shrinks when keyboard opens */}
+      {/* FIX 3: Added 'ref={scrollRef}' to enable auto-scroll */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar pb-2 min-h-0">
+         <div className="pb-4">
         {!submittedPrompt ? (
             <div className={`text-center px-2 ${showCreditModal ? 'py-4' : 'py-8 sm:py-12'}`}>
               <div className="inline-flex p-4 sm:p-6 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 shadow-lg shadow-orange-500/30">
@@ -532,13 +539,13 @@ export default function GeneratorPage() {
                                                 className="w-full py-2 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg font-semibold text-xs text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
                                             >
                                                 {isScheduling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : scheduleSuccess ? <Check className="w-3.5 h-3.5" /> : 'Confirm'}
-                                                {scheduleSuccess && ' Scheduled!'}
+                                                {scheduleSuccess && ' Done!'}
                                             </button>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
                         </div>
-                        
+                        {/* ------------------------------------------- */}
 
                         <button onClick={handleAnalyze} disabled={isAnalyzing} className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 rounded-lg transition-colors disabled:opacity-50">
                             {isAnalyzing ? <Loader2 size={12} className="sm:w-3.5 sm:h-3.5 animate-spin" /> : <BarChart2 size={12} className="sm:w-3.5 sm:h-3.5" />}
@@ -584,7 +591,8 @@ export default function GeneratorPage() {
       </div>
 
       {/* INPUT AREA */}
-      <div className="mt-auto flex-shrink-0 pb-6 sm:pb-6">
+      {/* Added extra padding for visual comfort */}
+      <div className="mt-auto flex-shrink-0 pb-6 sm:pb-6 px-1">
         <div className="relative bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl focus-within:border-orange-500/50 transition-colors">
           
           <div className="flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 border-b border-white/5">
