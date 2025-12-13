@@ -8,51 +8,51 @@ import {
 import { useSupabase } from '../../../components/SupabaseProvider'; 
 import { motion, AnimatePresence } from 'framer-motion';
 
-// 1. Define the Event Type
+// --- 1. Strong Types ---
 interface CalendarEvent {
   id: string;
   title: string;
-  date: string;
+  date: string; // ISO String (UTC)
   platform: string;
   notify: boolean;
   status?: string;
   user_id?: string;
+  content?: string;
 }
 
-// 2. Define the Realtime Payload Type
-interface RealtimePayload {
-  new: CalendarEvent;
-  [key: string]: unknown;
-}
-
-// 3. Define the Context Type
 interface SupabaseContext {
   supabase: {
     channel: (name: string) => {
       on: (
         event: string, 
         config: { event: string; schema: string; table: string; filter: string }, 
-        callback: (payload: RealtimePayload) => void
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        callback: (payload: any) => void
       ) => { subscribe: () => void };
     };
     removeChannel: (channel: unknown) => void;
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    from: (table: string) => any; 
   };
-  session: {
-    user: {
-      id: string;
-      email?: string;
-    };
+  session: { 
+    user: { 
+      id: string; 
+      email?: string; 
+    }; 
   } | null;
 }
 
 export default function CalendarPage() {
-  // 4. FIX: Use 'as unknown as SupabaseContext' to fix the overlap error
   const { supabase, session } = (useSupabase() as unknown as SupabaseContext) || { supabase: null, session: null };
   
   const [showSuccess, setShowSuccess] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   
-  const [selectedDate, setSelectedDate] = useState<string | null>(new Date().toISOString().split('T')[0]); 
+  // Helper: Get today's date in local YYYY-MM-DD format
+  const getTodayString = () => new Date().toLocaleDateString('en-CA');
+
+  const [selectedDate, setSelectedDate] = useState<string | null>(getTodayString()); 
   const [selectedTime, setSelectedTime] = useState('09:00'); 
 
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -62,18 +62,37 @@ export default function CalendarPage() {
   
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventPlatform, setNewEventPlatform] = useState('linkedin');
-  const [newEventNotify, setNewEventNotify] = useState(false);
+  const [newEventNotify, setNewEventNotify] = useState(true); 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); 
 
-  const [savedNotifyStatus, setSavedNotifyStatus] = useState(false);
   const [savedDateTime, setSavedDateTime] = useState('');
+
+  // --- FIX 1: REMOVED MANUAL MATH. Let browser handle Local Time ---
+  const formatTime = (isoString: string) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    // This automatically converts UTC -> IST (or your local time)
+    return date.toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  // --- FIX 2: Check Date Match using Local Time ---
+  const isEventOnDate = (eventDateIso: string, targetDateStr: string | null) => {
+    if (!targetDateStr || !eventDateIso) return false;
+    const eventDate = new Date(eventDateIso);
+    // Convert event UTC -> Local YYYY-MM-DD
+    const eventLocalStr = eventDate.toLocaleDateString('en-CA');
+    return eventLocalStr === targetDateStr;
+  };
 
   useEffect(() => {
     fetchEvents();
   }, []);
 
   useEffect(() => {
-    // Safety check
     if (!supabase || !session?.user?.id) return;
 
     const channel = supabase
@@ -84,12 +103,11 @@ export default function CalendarPage() {
           event: 'UPDATE',
           schema: 'public',
           table: 'content_schedule',
-          filter: `user_id=eq.${session.user.id}`
+          filter: `user_id=eq.${session.user.id}` 
         },
-        (payload: RealtimePayload) => {
-          console.log("Realtime update received:", payload);
-          
-          const updatedRow = payload.new;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (payload: any) => {
+          const updatedRow = payload.new as CalendarEvent;
           setEvents((currentEvents) => 
             currentEvents.map((evt) => 
               evt.id === updatedRow.id ? { ...evt, status: updatedRow.status } : evt
@@ -108,10 +126,10 @@ export default function CalendarPage() {
     if (selectedDate) {
       const date = new Date(selectedDate);
       if (!isNaN(date.getTime())) {
-        setCurrentDate(date);
+        setCurrentDate(new Date(date.getFullYear(), date.getMonth(), 1));
       }
     }
-  }, [selectedDate]);
+  }, []); 
 
   const fetchEvents = async () => {
     try {
@@ -129,9 +147,8 @@ export default function CalendarPage() {
     if (!newEventTitle || !selectedDate || !session?.user) return;
     setIsAdding(true);
 
+    // Combine Date and Time into ISO string (Browser handles conversion to UTC)
     const finalDateTime = new Date(`${selectedDate}T${selectedTime}:00`).toISOString();
-
-    setSavedNotifyStatus(newEventNotify);
     setSavedDateTime(finalDateTime);
 
     try {
@@ -149,7 +166,6 @@ export default function CalendarPage() {
       });
       
       setNewEventTitle('');
-      setNewEventNotify(false); 
       fetchEvents();
 
       setShowSuccess(true);
@@ -214,7 +230,6 @@ export default function CalendarPage() {
     <div className="w-full min-h-[100svh] overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent hover:scrollbar-thumb-neutral-600">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-6 sm:py-8 relative">
         
-        {/* Success Toast */}
         {showSuccess && (
           <div className="fixed top-4 right-4 sm:top-24 sm:right-8 z-50 animate-in fade-in slide-in-from-top-5 duration-300">
             <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 backdrop-blur-md">
@@ -224,14 +239,14 @@ export default function CalendarPage() {
               <div>
                 <p className="font-bold text-sm">Scheduled!</p>
                 <p className="text-xs opacity-80">
-                    {new Date(savedDateTime).toLocaleDateString()} at {new Date(savedDateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    {/* Shows Local Date and Time */}
+                    {new Date(savedDateTime).toLocaleDateString()} at {formatTime(savedDateTime)}
                 </p>
               </div>
             </div>
           </div>
         )}
         
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2 sm:gap-3">
@@ -271,11 +286,14 @@ export default function CalendarPage() {
 
               {[...Array(days)].map((_, i) => {
                 const dayNum = i + 1;
+                // Construct date string safely YYYY-MM-DD
                 const dateStr = `${year}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
                 
-                const dayEvents = events.filter(e => e.date.split('T')[0] === dateStr);
+                // Use helper to check date match in local time
+                const dayEvents = events.filter(e => isEventOnDate(e.date, dateStr));
+                
                 const isSelected = selectedDate === dateStr;
-                const isToday = new Date().toISOString().split('T')[0] === dateStr;
+                const isToday = getTodayString() === dateStr;
 
                 return (
                   <div 
@@ -315,7 +333,6 @@ export default function CalendarPage() {
             </div>
 
             <div className="space-y-4 mb-8 border-b border-white/10 pb-8">
-                
                 {/* 1. DATE & TIME PICKER ROW */}
                 <div className="flex gap-3">
                     <div className="space-y-1 flex-1">
@@ -412,11 +429,13 @@ export default function CalendarPage() {
 
             {/* EVENTS LIST */}
             <div className="flex-1 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-neutral-700 pr-1 max-h-[300px] lg:max-h-none">
-              {events.filter(e => e.date.split('T')[0] === selectedDate).length === 0 && (
+              
+              {/* Use helper function to filter by local date */}
+              {events.filter(e => isEventOnDate(e.date, selectedDate)).length === 0 && (
                 <p className="text-sm text-gray-500 italic text-center py-4">No events for this date.</p>
               )}
               
-              {events.filter(e => e.date.split('T')[0] === selectedDate).map(evt => {
+              {events.filter(e => isEventOnDate(e.date, selectedDate)).map(evt => {
                 const isDone = evt.status === 'notified';
                 return (
                   <div key={evt.id} className={`p-3 rounded-xl border flex items-center justify-between group transition-all ${isDone ? 'bg-white/5 border-white/5 opacity-60' : 'bg-white/5 border-white/5 hover:border-white/20'}`}>
@@ -432,10 +451,12 @@ export default function CalendarPage() {
                         <p className="text-xs text-gray-500 capitalize bg-black/30 px-2 py-0.5 rounded flex items-center gap-1">
                           {getPlatformIcon(evt.platform)} {evt.platform}
                         </p>
+                        
                         <p className="text-xs text-gray-400 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {new Date(evt.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                          {formatTime(evt.date)}
                         </p>
+                        
                         {evt.notify && <Bell className="w-3 h-3 text-green-500" />}
                       </div>
                     </div>
