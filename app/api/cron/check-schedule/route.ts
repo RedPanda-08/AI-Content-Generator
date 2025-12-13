@@ -103,7 +103,7 @@ export async function GET(request: Request) {
                 await resend.emails.send({
                     from: 'ContentAI <onboarding@resend.dev>',
                     to: post.user_email,
-                    subject: `Ready to post on ${post.platform}`,
+                    subject: `⏰ Ready to post on ${post.platform}`,
                     html: emailContent,
                 });
             }
