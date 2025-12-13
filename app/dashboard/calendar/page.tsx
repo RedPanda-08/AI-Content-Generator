@@ -1,54 +1,108 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Bell, BellOff, Plus, Loader2, Calendar as CalendarIcon, Trash2, CheckCircle2, ChevronDown, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { 
+  ChevronLeft, ChevronRight, Bell, BellOff, Plus, Loader2, 
+  Calendar as CalendarIcon, Trash2, CheckCircle2, ChevronDown, Clock,
+  Linkedin, Twitter, Instagram, Bot 
+} from 'lucide-react';
 import { useSupabase } from '../../../components/SupabaseProvider'; 
 import { motion, AnimatePresence } from 'framer-motion';
-// Icons
-import { Linkedin, Twitter, Instagram, Bot } from 'lucide-react';
 
+// 1. Define the Event Type
 interface CalendarEvent {
   id: string;
   title: string;
   date: string;
   platform: string;
   notify: boolean;
+  status?: string;
+  user_id?: string;
 }
 
-interface UserSession {
+// 2. Define the Realtime Payload Type
+interface RealtimePayload {
+  new: CalendarEvent;
+  [key: string]: unknown;
+}
+
+// 3. Define the Context Type
+interface SupabaseContext {
+  supabase: {
+    channel: (name: string) => {
+      on: (
+        event: string, 
+        config: { event: string; schema: string; table: string; filter: string }, 
+        callback: (payload: RealtimePayload) => void
+      ) => { subscribe: () => void };
+    };
+    removeChannel: (channel: unknown) => void;
+  };
+  session: {
     user: {
-        id: string;
-        email?: string;
-    }
+      id: string;
+      email?: string;
+    };
+  } | null;
 }
 
 export default function CalendarPage() {
-  const { session } = (useSupabase() || {}) as { session: UserSession | null };
+  // 4. FIX: Use 'as unknown as SupabaseContext' to fix the overlap error
+  const { supabase, session } = (useSupabase() as unknown as SupabaseContext) || { supabase: null, session: null };
   
   const [showSuccess, setShowSuccess] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
   
-  // Date & Time States
   const [selectedDate, setSelectedDate] = useState<string | null>(new Date().toISOString().split('T')[0]); 
-  const [selectedTime, setSelectedTime] = useState('09:00'); // Default to 9 AM
+  const [selectedTime, setSelectedTime] = useState('09:00'); 
 
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null); 
   
-  // Form States
   const [newEventTitle, setNewEventTitle] = useState('');
   const [newEventPlatform, setNewEventPlatform] = useState('linkedin');
   const [newEventNotify, setNewEventNotify] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); 
 
-  // Toast States
   const [savedNotifyStatus, setSavedNotifyStatus] = useState(false);
   const [savedDateTime, setSavedDateTime] = useState('');
 
   useEffect(() => {
     fetchEvents();
   }, []);
+
+  useEffect(() => {
+    // Safety check
+    if (!supabase || !session?.user?.id) return;
+
+    const channel = supabase
+      .channel('realtime-calendar')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'content_schedule',
+          filter: `user_id=eq.${session.user.id}`
+        },
+        (payload: RealtimePayload) => {
+          console.log("Realtime update received:", payload);
+          
+          const updatedRow = payload.new;
+          setEvents((currentEvents) => 
+            currentEvents.map((evt) => 
+              evt.id === updatedRow.id ? { ...evt, status: updatedRow.status } : evt
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, session]);
 
   useEffect(() => {
     if (selectedDate) {
@@ -75,7 +129,6 @@ export default function CalendarPage() {
     if (!newEventTitle || !selectedDate || !session?.user) return;
     setIsAdding(true);
 
-    // FIX: Combine Date and Time into one ISO string
     const finalDateTime = new Date(`${selectedDate}T${selectedTime}:00`).toISOString();
 
     setSavedNotifyStatus(newEventNotify);
@@ -87,7 +140,7 @@ export default function CalendarPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: newEventTitle,
-          date: finalDateTime, // Send the full timestamp
+          date: finalDateTime, 
           platform: newEventPlatform,
           notify: newEventNotify,
           user_email: session.user.email,
@@ -171,7 +224,6 @@ export default function CalendarPage() {
               <div>
                 <p className="font-bold text-sm">Scheduled!</p>
                 <p className="text-xs opacity-80">
-                    {/* Shows "Dec 12 at 10:30 AM" */}
                     {new Date(savedDateTime).toLocaleDateString()} at {new Date(savedDateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                 </p>
               </div>
@@ -221,9 +273,7 @@ export default function CalendarPage() {
                 const dayNum = i + 1;
                 const dateStr = `${year}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
                 
-                // Compare only dates (ignoring time) for the dot indicators
                 const dayEvents = events.filter(e => e.date.split('T')[0] === dateStr);
-                
                 const isSelected = selectedDate === dateStr;
                 const isToday = new Date().toISOString().split('T')[0] === dateStr;
 
@@ -353,7 +403,7 @@ export default function CalendarPage() {
                 <button 
                     onClick={handleSave}
                     disabled={!newEventTitle || isAdding || !selectedDate}
-                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl font-semibold text-white shadow-lg hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 transition-all active:scale-95"
+                    className="w-full py-3 cursor-pointer bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl font-semibold text-white shadow-lg hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 transition-all active:scale-95"
                 >
                     {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                     Add Schedule
@@ -362,38 +412,45 @@ export default function CalendarPage() {
 
             {/* EVENTS LIST */}
             <div className="flex-1 overflow-y-auto space-y-3 scrollbar-thin scrollbar-thumb-neutral-700 pr-1 max-h-[300px] lg:max-h-none">
-              {/* Only compare YYYY-MM-DD for filtering */}
               {events.filter(e => e.date.split('T')[0] === selectedDate).length === 0 && (
                 <p className="text-sm text-gray-500 italic text-center py-4">No events for this date.</p>
               )}
               
-              {events.filter(e => e.date.split('T')[0] === selectedDate).map(evt => (
-                <div key={evt.id} className="bg-white/5 p-3 rounded-xl border border-white/5 flex items-center justify-between group hover:border-white/20 transition-all">
-                  <div className="flex-1 min-w-0 mr-2">
-                    <p className="text-white font-medium text-sm truncate">{evt.title}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className="text-xs text-gray-500 capitalize bg-black/30 px-2 py-0.5 rounded flex items-center gap-1">
-                        {getPlatformIcon(evt.platform)} {evt.platform}
-                      </p>
-                      {/* Show Time in Event List */}
-                      <p className="text-xs text-gray-400 flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {new Date(evt.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </p>
-                      {evt.notify && <Bell className="w-3 h-3 text-green-500" />}
+              {events.filter(e => e.date.split('T')[0] === selectedDate).map(evt => {
+                const isDone = evt.status === 'notified';
+                return (
+                  <div key={evt.id} className={`p-3 rounded-xl border flex items-center justify-between group transition-all ${isDone ? 'bg-white/5 border-white/5 opacity-60' : 'bg-white/5 border-white/5 hover:border-white/20'}`}>
+                    <div className="flex-1 min-w-0 mr-2">
+                      <div className="flex items-center gap-2">
+                          <p className={`font-medium text-sm truncate ${isDone ? 'text-gray-500 line-through' : 'text-white'}`}>
+                              {evt.title}
+                          </p>
+                          {isDone && <span className="text-[10px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded border border-green-500/30 font-medium">Done</span>}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 mt-1">
+                        <p className="text-xs text-gray-500 capitalize bg-black/30 px-2 py-0.5 rounded flex items-center gap-1">
+                          {getPlatformIcon(evt.platform)} {evt.platform}
+                        </p>
+                        <p className="text-xs text-gray-400 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {new Date(evt.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </p>
+                        {evt.notify && <Bell className="w-3 h-3 text-green-500" />}
+                      </div>
                     </div>
+                    
+                    <button 
+                      onClick={() => handleDelete(evt.id)}
+                      disabled={deletingId === evt.id}
+                      className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                      title="Delete Event"
+                    >
+                      {deletingId === evt.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    </button>
                   </div>
-                  
-                  <button 
-                    onClick={() => handleDelete(evt.id)}
-                    disabled={deletingId === evt.id}
-                    className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
-                    title="Delete Event"
-                  >
-                    {deletingId === evt.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
