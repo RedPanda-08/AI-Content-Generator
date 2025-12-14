@@ -23,7 +23,7 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 // Renamed tabs for better UX
 const navItems = [
-  { name: "Create", href: "/dashboard", icon: Bot },
+  { name: "Create Posts", href: "/dashboard", icon: Bot },
   { name: "Saved Posts", href: "/dashboard/history", icon: History },
   { name: "Brand Style", href: "/dashboard/settings", icon: Sparkles },
   { name: "Planner", href: "/dashboard/calendar", icon: Calendar }
