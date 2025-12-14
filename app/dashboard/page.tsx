@@ -53,7 +53,7 @@ export default function GeneratorPage() {
 
   const scheduleContainerRef = useRef<HTMLDivElement>(null);
 
-  // --- ANIMATION VARIANTS FOR CONTENT ---
+  // --- ✅ ADDED MISSING VARIANTS ---
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -375,7 +375,7 @@ export default function GeneratorPage() {
               ) : (
                 <div className="flex-1 min-w-0">
                   <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 animate-fadeIn relative">
-                    {/* ✅ FIXED: Gentle Animation + Clean Text (No Asterisks) */}
+                    {/* ✅ ANIMATED CONTENT RENDERER */}
                     <motion.div
                         variants={containerVariants}
                         initial="hidden"
@@ -384,7 +384,6 @@ export default function GeneratorPage() {
                         style={{ lineHeight: '1.8', letterSpacing: '0.01em' }}
                     >
                         {generatedContent.split('\n').map((paragraph, index) => {
-                            // Clean the text here before rendering
                             const cleanParagraph = paragraph.replace(/\*/g, '').trim();
                             return cleanParagraph ? (
                                 <motion.p variants={childVariants} key={index} className="mb-3 last:mb-0">
