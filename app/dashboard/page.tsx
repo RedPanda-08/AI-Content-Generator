@@ -4,7 +4,8 @@ import { Send, Bot, Sparkles, User, Copy, Check, CheckCircle2, BarChart2, Loader
 import Textarea from 'react-textarea-autosize'; 
 import { useSupabase } from '../../components/SupabaseProvider'; 
 import Link from 'next/link'; 
-import { motion, AnimatePresence } from 'framer-motion';
+// ✅ FIX 1: Import 'Variants' type
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { createBrowserClient } from '@supabase/ssr'; 
 
 // --- INTERFACES ---
@@ -19,6 +20,27 @@ interface SupabaseContextType {
   } | null;
   initialized: boolean;
 }
+
+// ✅ FIX 2: Explicitly type these objects as 'Variants'
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1,
+    },
+  },
+};
+
+const childVariants: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { type: "spring", stiffness: 100, damping: 20 } 
+  },
+};
 
 export default function GeneratorPage() {
   const context = useSupabase() as SupabaseContextType | null;
@@ -52,27 +74,6 @@ export default function GeneratorPage() {
   const [scheduledDisplayString, setScheduledDisplayString] = useState('');
 
   const scheduleContainerRef = useRef<HTMLDivElement>(null);
-
-  // --- ✅ ADDED MISSING VARIANTS ---
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
-  const childVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { type: "spring", stiffness: 100, damping: 20 } 
-    },
-  };
 
   useEffect(() => {
     if (initialized) { setIsReady(true); return; }
@@ -181,6 +182,7 @@ export default function GeneratorPage() {
     setIsScheduling(true);
     setError(null);
 
+    // Clean text before saving
     let cleanContent = generatedContent.replace(/[\uFFFD\uFEFF]/g, '').replace(/\*/g, '').trim();
     if (cleanContent.startsWith('"') && cleanContent.endsWith('"')) cleanContent = cleanContent.slice(1, -1);
     else if (cleanContent.startsWith("'") && cleanContent.endsWith("'")) cleanContent = cleanContent.slice(1, -1);
@@ -283,23 +285,23 @@ export default function GeneratorPage() {
                 <div className="fixed inset-0 z-50 flex md:hidden items-center justify-center p-4">
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowDatePicker(false)} />
                      <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} onClick={(e) => e.stopPropagation()} className="bg-[#121212] border border-white/10 p-6 rounded-3xl shadow-2xl w-full max-w-xs relative overflow-hidden z-10">
-                         <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -z-10" />
-                         <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-zinc-800 rounded-xl">
-                                    <Clock className="w-5 h-5 text-orange-400" />
-                                </div>
-                                <div>
-                                    <h3 className="text-base font-bold text-white leading-tight">Schedule</h3>
-                                    <p className="text-[11px] text-zinc-400">Pick a time to post</p>
-                                </div>
-                            </div>
-                            <button onClick={() => setShowDatePicker(false)} className="text-zinc-500 hover:text-white p-1"><X className="w-4 h-4" /></button>
-                        </div>
-                        <input type="datetime-local" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm focus:outline-none focus:border-orange-500 mb-5 [color-scheme:dark] shadow-inner" onChange={(e) => setScheduledDate(e.target.value)} />
-                        <button onClick={handleScheduleConfirm} disabled={!scheduledDate || isScheduling} className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl font-semibold text-sm text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20">
-                            {isScheduling ? <Loader2 className="w-4 h-4 animate-spin" /> : scheduleSuccess ? <Check className="w-4 h-4" /> : 'Confirm & Save'}
-                        </button>
+                          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -z-10" />
+                          <div className="flex justify-between items-start mb-4">
+                             <div className="flex items-center gap-3">
+                                 <div className="p-2.5 bg-zinc-800 rounded-xl">
+                                     <Clock className="w-5 h-5 text-orange-400" />
+                                 </div>
+                                 <div>
+                                     <h3 className="text-base font-bold text-white leading-tight">Schedule</h3>
+                                     <p className="text-[11px] text-zinc-400">Pick a time to post</p>
+                                 </div>
+                             </div>
+                             <button onClick={() => setShowDatePicker(false)} className="text-zinc-500 hover:text-white p-1"><X className="w-4 h-4" /></button>
+                         </div>
+                         <input type="datetime-local" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm focus:outline-none focus:border-orange-500 mb-5 [color-scheme:dark] shadow-inner" onChange={(e) => setScheduledDate(e.target.value)} />
+                         <button onClick={handleScheduleConfirm} disabled={!scheduledDate || isScheduling} className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl font-semibold text-sm text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20">
+                             {isScheduling ? <Loader2 className="w-4 h-4 animate-spin" /> : scheduleSuccess ? <Check className="w-4 h-4" /> : 'Confirm & Save'}
+                         </button>
                     </motion.div>
                 </div>
                 <div className="hidden md:block fixed inset-0 z-40 bg-transparent" onClick={() => setShowDatePicker(false)} />
@@ -375,7 +377,6 @@ export default function GeneratorPage() {
               ) : (
                 <div className="flex-1 min-w-0">
                   <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 animate-fadeIn relative">
-                    {/* ✅ ANIMATED CONTENT RENDERER */}
                     <motion.div
                         variants={containerVariants}
                         initial="hidden"
