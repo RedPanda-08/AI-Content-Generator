@@ -95,7 +95,7 @@ export async function GET(request: Request) {
                     ">${post.content}</pre>
 
                     <div style="text-align:center; margin-top:32px;">
-                        <a href="https://ai-content-generator-blush-one.vercel.app/dashboard/calendar"
+                        <a href="https://ai-content-generator-blush-one.vercel.app/dashboard/calendar?eventId=${post.id}"
                         style="background:#000; color:#fff; padding:12px 26px; border-radius:6px; text-decoration:none;">
                         View in Calendar
                         </a>
