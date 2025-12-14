@@ -1,6 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation'; // Added import
+import { useState, useEffect, Suspense } from 'react';
 import { 
   ChevronLeft, ChevronRight, Bell, BellOff, Plus, Loader2, 
   Calendar as CalendarIcon, Trash2, CheckCircle2, ChevronDown, Clock,
@@ -9,7 +8,7 @@ import {
 import { useSupabase } from '../../../components/SupabaseProvider'; 
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- 1. Strong Types ---
+// --- Types ---
 interface CalendarEvent {
   id: string;
   title: string;
@@ -43,9 +42,9 @@ interface SupabaseContext {
   } | null;
 }
 
-export default function CalendarPage() {
+// --- MAIN LOGIC COMPONENT (Renamed, not default exported) ---
+function CalendarContent() {
   const { supabase, session } = (useSupabase() as unknown as SupabaseContext) || { supabase: null, session: null };
-  const searchParams = useSearchParams(); // Get URL params
   
   const [showSuccess, setShowSuccess] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -67,7 +66,7 @@ export default function CalendarPage() {
 
   const [savedDateTime, setSavedDateTime] = useState('');
 
-  // --- POPUP STATE ---
+  // --- POPUP / MODAL STATE ---
   const [activePopupDate, setActivePopupDate] = useState<string | null>(null);
   const [copySuccessId, setCopySuccessId] = useState<string | null>(null);
 
@@ -82,36 +81,40 @@ export default function CalendarPage() {
     return eventDateIso.startsWith(targetDateStr);
   };
 
-  const handleCopyContent = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopySuccessId(id);
-    setTimeout(() => setCopySuccessId(null), 2000);
+  const handleCopyContent = async (text: string, id: string) => {
+    if (!text) return;
+
+    const performCopy = () => {
+       setCopySuccessId(id);
+       setTimeout(() => setCopySuccessId(null), 2000);
+    };
+
+    try {
+      await navigator.clipboard.writeText(text);
+      performCopy();
+    } catch (err) {
+      console.warn('Clipboard API failed, using fallback', err);
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        textArea.style.top = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        if (successful) performCopy();
+      } catch (fallbackErr) {
+        console.error('Fallback copy failed', fallbackErr);
+      }
+    }
   };
 
   useEffect(() => {
     fetchEvents();
   }, []);
-
-  // --- NEW: Auto-Open Popup from URL ---
-  useEffect(() => {
-    const eventId = searchParams.get('eventId');
-    if (eventId && events.length > 0) {
-      const targetEvent = events.find(e => e.id === eventId);
-      if (targetEvent) {
-        // Convert the event's UTC date to local "YYYY-MM-DD"
-        // This ensures it matches the format used by isEventOnDate
-        const dateObj = new Date(targetEvent.date);
-        const dateStr = dateObj.toLocaleDateString('en-CA');
-        
-        // 1. Set the active popup date so the modal opens
-        setActivePopupDate(dateStr);
-        // 2. Select that date in the calendar UI
-        setSelectedDate(dateStr);
-        // 3. Update the visible month if the event is far away
-        setCurrentDate(new Date(dateObj.getFullYear(), dateObj.getMonth(), 1));
-      }
-    }
-  }, [events, searchParams]);
 
   useEffect(() => {
     if (!supabase || !session?.user?.id) return;
@@ -238,6 +241,10 @@ export default function CalendarPage() {
 
   const platforms = ['linkedin', 'twitter', 'instagram'];
 
+  const activePopupEvents = activePopupDate 
+    ? events.filter(e => isEventOnDate(e.date, activePopupDate))
+    : [];
+
   if (loading) {
       return (
         <div className="flex h-[100svh] items-center justify-center">
@@ -249,26 +256,18 @@ export default function CalendarPage() {
   return (
     <div className="w-full min-h-[100svh] overflow-y-auto scrollbar-thin scrollbar-thumb-neutral-700 scrollbar-track-transparent hover:scrollbar-thumb-neutral-600">
       
-      {/* GLOBAL SCROLLBAR STYLE FOR POPUP */}
+      {/* GLOBAL SCROLLBAR STYLE */}
       <style jsx global>{`
-        .popup-scrollbar::-webkit-scrollbar { width: 6px; }
-        .popup-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
-        .popup-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-        .popup-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+        .popup-scrollbar::-webkit-scrollbar { width: 5px; }
+        .popup-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .popup-scrollbar::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 99px; }
+        .popup-scrollbar::-webkit-scrollbar-thumb:hover { background: #52525b; }
       `}</style>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-6 sm:py-8 relative">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 lg:pt-6 pb-24 sm:pb-12 relative">
         
-        {/* Invisible Overlay to close popup when clicking outside */}
-        {activePopupDate && (
-            <div 
-                className="fixed inset-0 z-10" 
-                onClick={() => setActivePopupDate(null)} 
-            />
-        )}
-
         {showSuccess && (
-          <div className="fixed top-4 right-4 sm:top-24 sm:right-8 z-50 animate-in fade-in slide-in-from-top-5 duration-300">
+          <div className="fixed top-4 right-4 sm:top-24 sm:right-8 z-50 animate-in fade-in slide-in-from-top-5 duration-300 w-[90%] sm:w-auto">
             <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 backdrop-blur-md">
               <div className="p-1 bg-emerald-500/20 rounded-full flex-shrink-0">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -292,25 +291,26 @@ export default function CalendarPage() {
             <p className="text-sm sm:text-base text-gray-400 mt-1">Plan and schedule your posts.</p>
           </div>
 
-          <div className="flex items-center justify-center gap-2 sm:gap-4 bg-white/5 p-1 rounded-xl border border-white/10 self-start sm:self-auto">
-            <button onClick={prevMonth} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg text-white transition-colors">
-              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          <div className="flex items-center justify-between sm:justify-center gap-2 sm:gap-4 bg-white/5 p-1 rounded-xl border border-white/10 w-full sm:w-auto">
+            <button onClick={prevMonth} className="p-2 hover:bg-white/10 rounded-lg text-white transition-colors">
+              <ChevronLeft className="w-5 h-5" />
             </button>
             <span className="font-semibold text-base sm:text-lg min-w-[120px] sm:min-w-[140px] text-center select-none">
               {monthName} {year}
             </span>
-            <button onClick={nextMonth} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg text-white transition-colors">
-              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            <button onClick={nextMonth} className="p-2 hover:bg-white/10 rounded-lg text-white transition-colors">
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
           
-          <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-6 shadow-xl h-fit relative z-0">
+          {/* CALENDAR GRID */}
+          <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-6 shadow-xl h-fit relative z-0">
             <div className="grid grid-cols-7 mb-4 text-center">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="text-xs font-semibold text-gray-500 uppercase tracking-wider py-1">
+                <div key={day} className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider py-1">
                   {day.slice(0, 3)}
                 </div>
               ))}
@@ -327,115 +327,39 @@ export default function CalendarPage() {
                 const isSelected = selectedDate === dateStr;
                 const isToday = getTodayString() === dateStr;
                 
-                const isPopupActive = activePopupDate === dateStr;
-
                 return (
                   <div 
                     key={dayNum}
-                    style={{ zIndex: isPopupActive ? 100 : 0 }} 
                     onClick={(e) => {
                         e.stopPropagation();
                         setSelectedDate(dateStr);
                         if (dayEvents.length > 0) {
-                            setActivePopupDate(isPopupActive ? null : dateStr);
-                        } else {
-                            setActivePopupDate(null);
+                            setActivePopupDate(dateStr);
                         }
                     }}
                     className={`
-                      aspect-square rounded-xl border transition-all cursor-pointer relative group flex flex-col items-center justify-start pt-2
-                      ${isSelected ? 'border-orange-500 bg-orange-500/10 ring-2 ring-orange-500/20' : 'border-white/5 hover:border-white/20 hover:bg-white/5'}
+                      aspect-square rounded-lg sm:rounded-xl border transition-all cursor-pointer relative group flex flex-col items-center justify-start pt-1.5 sm:pt-2
+                      ${isSelected ? 'border-orange-500 bg-orange-500/10 ring-1 sm:ring-2 ring-orange-500/20' : 'border-white/5 hover:border-white/20 hover:bg-white/5'}
                       ${isToday ? 'bg-white/10' : ''}
                     `}
                   >
-                    <span className={`text-xs sm:text-sm font-medium ${isToday ? 'text-orange-400 font-bold' : 'text-gray-400'}`}>
+                    <span className={`text-[10px] sm:text-sm font-medium ${isToday ? 'text-orange-400 font-bold' : 'text-gray-400'}`}>
                       {dayNum}
                     </span>
-                    <div className="flex gap-1 mt-1 sm:mt-2 flex-wrap justify-center px-1 w-full">
+                    <div className="flex gap-0.5 sm:gap-1 mt-1 sm:mt-2 flex-wrap justify-center px-0.5 w-full">
                       {dayEvents.slice(0, 3).map(evt => (
-                        <div key={evt.id} className={`w-1.5 h-1.5 rounded-full ${evt.notify ? 'bg-green-500' : 'bg-orange-500'}`} />
+                        <div key={evt.id} className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${evt.notify ? 'bg-green-500' : 'bg-orange-500'}`} />
                       ))}
-                      {dayEvents.length > 3 && <div className="w-1.5 h-1.5 rounded-full bg-gray-500" />}
+                      {dayEvents.length > 3 && <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-gray-500" />}
                     </div>
-
-                    {/* --- CLICK POPUP ABOVE DATE --- */}
-                    <AnimatePresence>
-                        {isPopupActive && dayEvents.length > 0 && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                transition={{ duration: 0.2 }}
-                                onClick={(e) => e.stopPropagation()} 
-                                className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-80 bg-[#18181b] border border-white/20 rounded-xl shadow-2xl z-50 overflow-hidden flex flex-col max-h-[400px] cursor-default"
-                            >
-                                <div className="p-3 bg-black/40 border-b border-white/10 flex justify-between items-center shrink-0">
-                                    <p className="text-xs font-bold text-white">
-                                        {new Date(dateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-                                    </p>
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); setActivePopupDate(null); }} 
-                                        className="text-gray-500 hover:text-white"
-                                    >
-                                        <X className="w-3.5 h-3.5"/>
-                                    </button>
-                                </div>
-                                
-                                <div className="overflow-y-auto popup-scrollbar flex-1 p-1">
-                                    {dayEvents.map((evt) => (
-                                        <div key={evt.id} className="p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    {getPlatformIcon(evt.platform)}
-                                                    <span className="text-[11px] font-bold text-white capitalize">{evt.platform}</span>
-                                                </div>
-                                                <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-0.5 rounded border border-white/5">{formatTime(evt.date)}</span>
-                                            </div>
-                                            
-                                            <p className="text-sm text-gray-200 font-semibold mb-2 leading-tight">{evt.title}</p>
-                                            
-                                            {/* SCROLLABLE CONTENT BOX */}
-                                            {evt.content && (
-                                                <div 
-                                                    className="bg-black/30 rounded-lg border border-white/5 p-3 mb-3 cursor-text"
-                                                    onClick={(e) => e.stopPropagation()} 
-                                                >
-                                                    <div className="max-h-32 overflow-y-auto popup-scrollbar pr-1">
-                                                        <p className="text-xs text-gray-300 leading-relaxed font-mono whitespace-pre-wrap select-text">
-                                                            {evt.content}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {/* COPY BUTTON */}
-                                            {evt.content && (
-                                                <button 
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleCopyContent(evt.content!, evt.id);
-                                                    }}
-                                                    className={`w-full flex items-center justify-center gap-2 py-2 border rounded-lg text-xs font-semibold transition-all cursor-pointer ${copySuccessId === evt.id ? 'bg-green-500/20 border-green-500/50 text-green-400' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20'}`}
-                                                >
-                                                    {copySuccessId === evt.id ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                                                    {copySuccessId === evt.id ? "Copied!" : "Copy Content"}
-                                                </button>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-[#18181b] border-r border-b border-white/20 rotate-45"></div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
                   </div>
                 );
               })}
             </div>
           </div>
 
-          <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6 flex flex-col h-full min-h-[400px]">
+          {/* SIDEBAR FORM */}
+          <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-4 sm:p-6 flex flex-col h-full min-h-[400px]">
             <div className="mb-6">
                 <h2 className="text-xl font-semibold text-white">Manage Schedule</h2>
                 {selectedDate && (
@@ -446,7 +370,8 @@ export default function CalendarPage() {
             </div>
 
             <div className="space-y-4 mb-8 border-b border-white/10 pb-8">
-                <div className="flex gap-3">
+                {/* Inputs: Stacked on Mobile, Row on Desktop */}
+                <div className="flex flex-col sm:flex-row gap-3">
                     <div className="space-y-1 flex-1">
                         <label className="text-xs text-gray-500 font-medium ml-1">Date</label>
                         <input 
@@ -456,7 +381,7 @@ export default function CalendarPage() {
                             onChange={(e) => setSelectedDate(e.target.value)}
                         />
                     </div>
-                    <div className="space-y-1 w-1/3">
+                    <div className="space-y-1 w-full sm:w-1/3">
                         <label className="text-xs text-gray-500 font-medium ml-1">Time</label>
                         <input 
                             type="time" 
@@ -579,6 +504,110 @@ export default function CalendarPage() {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {activePopupDate && activePopupEvents.length > 0 && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-4">
+            
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setActivePopupDate(null)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"
+            />
+
+            {/* Modal Content */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.98, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 20 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="relative w-[95%] sm:w-full sm:max-w-lg bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden max-h-[80vh] flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950/50">
+                <div>
+                    <h3 className="text-xs sm:text-sm font-semibold text-zinc-400 uppercase tracking-wider">Schedule Details</h3>
+                    <p className="text-base sm:text-lg font-bold text-white mt-0.5">
+                        {new Date(activePopupDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+                </div>
+                <button 
+                  onClick={() => setActivePopupDate(null)}
+                  className="p-2 hover:bg-zinc-800 rounded-lg text-zinc-500 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Scrollable Body */}
+              <div className="overflow-y-auto p-4 sm:p-6 space-y-6 popup-scrollbar">
+                {activePopupEvents.map((evt, idx) => (
+                  <div key={evt.id} className="relative pl-4">
+                    {idx !== activePopupEvents.length - 1 && (
+                        <div className="absolute left-0 top-2 bottom-0 w-px bg-zinc-800" />
+                    )}
+
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                            {getPlatformIcon(evt.platform)}
+                            <span className="text-xs font-bold text-zinc-300 uppercase tracking-wide">{evt.platform}</span>
+                        </div>
+                        <span className="text-xs font-mono text-zinc-500">
+                            {formatTime(evt.date)}
+                        </span>
+                    </div>
+
+                    <h4 className="text-base font-semibold text-white mb-3 break-words">{evt.title}</h4>
+
+                    {evt.content && (
+                        <div className="group bg-zinc-900/50 rounded-lg border border-zinc-800/80 p-3 sm:p-4 mb-4 relative hover:border-zinc-700 transition-colors">
+                            <p className="text-xs sm:text-sm text-zinc-300 font-mono whitespace-pre-wrap leading-relaxed select-text break-words">
+                                {evt.content}
+                            </p>
+                        </div>
+                    )}
+
+                    {evt.content && (
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopyContent(evt.content!, evt.id);
+                            }}
+                            className={`cursor-pointer w-full flex items-center justify-center gap-2 py-3 sm:py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wide transition-all duration-200 border ${
+                                copySuccessId === evt.id 
+                                ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400' 
+                                : 'bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-900 hover:border-zinc-700 hover:text-white'
+                            }`}
+                        >
+                            {copySuccessId === evt.id ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                            {copySuccessId === evt.id ? "Copied" : "Copy to Clipboard"}
+                        </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
+  );
+}
+
+// --- 3. Wrapper Component ---
+export default function CalendarPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-[100svh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      </div>
+    }>
+      <CalendarContent />
+    </Suspense>
   );
 }

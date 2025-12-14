@@ -61,62 +61,182 @@ export async function GET(request: Request) {
         hour12: true,
       });
 
-      // ---- EMAIL TEMPLATE ----
       const emailHtml = `
                 <!DOCTYPE html>
-                <html>
-                <body style="font-family: Arial, sans-serif; background-color: #f4f4f5; padding: 20px;">
-                <div style="max-width: 600px; margin: auto; background: #fff; border-radius: 10px; border: 1px solid #ddd; overflow: hidden;">
+            <html lang="en">
+            <head>
+            <style>
+            /* Mobile Container Styling */
+            .mobile-screen {
+                max-width: 375px; /* Standard iPhone width */
+                font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+                background-color: #F5F7FA;
+                margin: 20px auto;
+                border: 12px solid #333; /* Phone bezel simulation */
+                border-radius: 30px;
+                overflow: hidden;
+                box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            }
 
-                    <div style="background:#000; padding:24px; text-align:center;">
-                        <h1 style="color:#fff; margin:0;">🚀 Your ${post.platform} post is ready</h1>
-                    </div>
+            /* Email Header */
+            .email-app-header {
+                background-color: #fff;
+                padding: 15px 20px;
+                border-bottom: 1px solid #eee;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                color: #007AFF;
+                font-size: 14px;
+                font-weight: 500;
+            }
 
-                    <div style="padding:28px;">
-                        <p><strong>Topic:</strong> ${post.title}</p>
-                        <p><strong>Scheduled Time:</strong> ${postTime}</p>
+            /* Email Metadata */
+            .email-meta {
+                background: #fff;
+                padding: 20px;
+            }
 
-                        <hr style="margin:24px 0;" />
+            .subject-line {
+                font-size: 18px;
+                font-weight: 700;
+                color: #1a1a1a;
+                margin-bottom: 12px;
+            }
 
-                        <p style="font-size:12px; color:#777; font-weight:bold;">
-                            COPY & PASTE BELOW
-                    </p>
+            .sender-info {
+                display: flex;
+                align-items: center;
+                margin-bottom: 20px;
+            }
 
-                    <pre style="
-                        background:#fafafa;
-                        border:1px solid #ccc;
-                        border-radius:6px;
-                        padding:16px;
-                        font-family: monospace;
-                        font-size:14px;
-                        line-height:1.6;
-                        white-space: pre-wrap;
-                        word-wrap: break-word;
-                    ">${post.content}</pre>
+            .avatar {
+                width: 40px;
+                height: 40px;
+                background: linear-gradient(135deg, #6366f1, #8b5cf6);
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                margin-right: 12px;
+                font-size: 16px;
+            }
 
-                    <div style="text-align:center; margin-top:32px;">
-                        <a href="https://ai-content-generator-blush-one.vercel.app/dashboard/calendar?eventId=${post.id}"
-                        style="background:#000; color:#fff; padding:12px 26px; border-radius:6px; text-decoration:none;">
-                        View in Calendar
-                        </a>
-                    </div>
-                    </div>
+            .sender-details {
+                display: flex;
+                flex-direction: column;
+            }
 
-                    <div style="background:#fafafa; padding:16px; text-align:center;">
-                    <p style="font-size:12px; color:#999;">
-                        You’re receiving this because you scheduled a post on ContentAI.
-                    </p>
-                    </div>
+            .sender-name {
+                font-weight: 600;
+                color: #333;
+                font-size: 15px;
+            }
 
+            .timestamp {
+                color: #888;
+                font-size: 12px;
+            }
+
+            /* Main Body Content */
+            .email-body {
+                background-color: #fff;
+                padding: 0 20px 40px 20px;
+                color: #333;
+                line-height: 1.6;
+            }
+
+            .label {
+                text-transform: uppercase;
+                color: #888;
+                font-size: 11px;
+                letter-spacing: 1px;
+                font-weight: 600;
+                margin-bottom: 5px;
+                display: block;
+            }
+
+            .topic-content {
+                font-size: 22px; 
+                font-weight: 700;
+                color: #1a1a1a;
+                margin-bottom: 25px;
+                line-height: 1.4;
+                letter-spacing: -0.3px;
+                word-wrap: break-word; 
+            }
+                .time-text {
+                font-size: 17px;
+                font-weight: 700;
+                letter-spacing: -0.2px;
+            }
+
+            .schedule-box {
+                background-color: #f0fdf4;
+                border: 1px solid #bbf7d0;
+                border-radius: 12px;
+                padding: 15px;
+                display: flex;
+                align-items: center;
+                color: #166534;
+            }
+
+            .clock-icon {
+                margin-right: 10px;
+                font-size: 20px;
+            }
+            </style>
+            </head>
+            <body>
+
+            <div class="mobile-screen">
+            <div class="email-app-header">
+                <span>&lt; Inbox</span>
+                <span>Edit</span>
+            </div>
+
+            <div class="email-meta">
+                <div class="sender-info">
+                <div class="avatar">C</div>
+                <div class="sender-details">
+                    <span class="sender-name">ContentAI Reminder</span>
+                    <span class="timestamp">Today at 8:00 PM</span>
                 </div>
-                </body>
-                </html>
-                    `;
+                </div>
+                
+                <div class="subject-line">Reminder: Upcoming Content Task</div>
+            </div>
+
+            <div class="email-body">
+                
+                <span class="label">Task Topic</span>
+                <div class="topic-content">
+                Create an engaging Instagram caption for a picture of a sunset.
+                </div>
+
+                <span class="label">Scheduled For</span>
+                <div class="schedule-box">
+                <span class="clock-icon">⏰</span>
+                <span class="time-text">8:39 PM</span>
+                </div>
+
+                <p style="margin-top: 30px; color: #666; font-size: 14px;">
+                <a href="#" style="color: #6366f1; text-decoration: none; font-weight: 600;">Open ContentAI Dashboard &rarr;</a>
+                </p>
+
+            </div>
+            </div>
+
+            </body>
+            </html>
+        `;
 
       // ---- SEND EMAIL ----
       if (post.user_email) {
         await resend.emails.send({
-          from: 'ContentAI <onboarding@resend.dev>',
+          from: 'ContentAI <onboarding@resend.dev>', 
           to: post.user_email,
           subject: `⏰ Ready to post: ${post.title}`,
           html: emailHtml,
@@ -124,12 +244,16 @@ export async function GET(request: Request) {
       }
 
       // ---- UPDATE STATUS ----
-      await supabase
+      const { error: updateError } = await supabase
         .from('content_schedule')
         .update({ status: 'notified' })
         .eq('id', post.id);
 
-      results.push({ id: post.id, status: 'notified' });
+      if (updateError) {
+          console.error(`Failed to update status for post ${post.id}`, updateError);
+      } else {
+          results.push({ id: post.id, status: 'notified' });
+      }
     }
 
     return NextResponse.json({
