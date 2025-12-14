@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef, useCallback } from 'react'; 
+import { useState, useEffect, useRef } from 'react'; 
 import { Send, Bot, Sparkles, User, Copy, Check, CheckCircle2, BarChart2, Loader2, Linkedin, Twitter, Instagram, X, Calendar as CalendarIcon, Clock, AlertTriangle } from 'lucide-react'; 
 import Textarea from 'react-textarea-autosize'; 
 import { useSupabase } from '../../components/SupabaseProvider'; 
@@ -20,52 +20,10 @@ interface SupabaseContextType {
   initialized: boolean;
 }
 
-// --- TYPEWRITER COMPONENT ---
-const Typewriter = ({ text, onComplete }: { text: string; onComplete?: () => void }) => {
-  const [displayedText, setDisplayedText] = useState('');
-  const indexRef = useRef(0);
-
-  const cleanAndFormat = (input: string) => {
-    if (!input) return "";
-    let cleaned = input.replace(/[\uFFFD\uFEFF]/g, '').replace(/\*/g, '').trim();
-    if (cleaned.startsWith('"') && cleaned.endsWith('"')) cleaned = cleaned.slice(1, -1);
-    else if (cleaned.startsWith("'") && cleaned.endsWith("'")) cleaned = cleaned.slice(1, -1);
-    if (cleaned.length > 0) cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-    return cleaned;
-  };
-
-  const processedText = cleanAndFormat(text);
-
-  useEffect(() => {
-    if (!processedText) return;
-    indexRef.current = 0;
-    setDisplayedText('');
-    const intervalId = setInterval(() => {
-      if (indexRef.current < processedText.length) {
-        setDisplayedText((prev) => prev + processedText.charAt(indexRef.current));
-        indexRef.current++;
-      } else {
-        clearInterval(intervalId);
-        if (onComplete) onComplete();
-      }
-    }, 8);
-    return () => clearInterval(intervalId);
-  }, [processedText, onComplete]);
-
-  return (
-    <div className="text-gray-300 leading-relaxed font-['Inter',sans-serif] text-sm sm:text-[15px]" style={{ lineHeight: '1.8', letterSpacing: '0.01em' }}>
-      {displayedText.split('\n').map((paragraph, index) => (
-        paragraph.trim() ? <p key={index} className="mb-3 last:mb-0 animate-fadeIn">{paragraph}</p> : <br key={index} />
-      ))}
-    </div>
-  );
-};
-
 export default function GeneratorPage() {
   const context = useSupabase() as SupabaseContextType | null;
   const { session, initialized } = context || { session: null, initialized: false };
   
-  // 1. Direct Client
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -91,15 +49,30 @@ export default function GeneratorPage() {
   const [scheduledDate, setScheduledDate] = useState('');
   const [isScheduling, setIsScheduling] = useState(false);
   const [scheduleSuccess, setScheduleSuccess] = useState(false);
-  
-  // State for Toast Display
   const [scheduledDisplayString, setScheduledDisplayString] = useState('');
 
   const scheduleContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleTypingComplete = useCallback(() => {
-    setIsTypingComplete(true);
-  }, []);
+  // --- ANIMATION VARIANTS FOR CONTENT ---
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const childVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { type: "spring", stiffness: 100, damping: 20 } 
+    },
+  };
 
   useEffect(() => {
     if (initialized) { setIsReady(true); return; }
@@ -143,7 +116,10 @@ export default function GeneratorPage() {
         }
         throw new Error(data.error || 'Something went wrong');
       }
+      
       setGeneratedContent(data.content);
+      setIsTypingComplete(true); 
+
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Something went wrong';
       setError(errorMessage);
@@ -196,9 +172,7 @@ export default function GeneratorPage() {
     }
   };
 
-  // --- THE FINAL FIXED SCHEDULE FUNCTION ---
   const handleScheduleConfirm = async () => {
-    // Safety check for user session
     if (!scheduledDate || !generatedContent || !session?.user) {
         console.error("Missing Data:", { scheduledDate, user: session?.user });
         return;
@@ -207,29 +181,19 @@ export default function GeneratorPage() {
     setIsScheduling(true);
     setError(null);
 
-    // 1. Clean Content
     let cleanContent = generatedContent.replace(/[\uFFFD\uFEFF]/g, '').replace(/\*/g, '').trim();
     if (cleanContent.startsWith('"') && cleanContent.endsWith('"')) cleanContent = cleanContent.slice(1, -1);
     else if (cleanContent.startsWith("'") && cleanContent.endsWith("'")) cleanContent = cleanContent.slice(1, -1);
     if (cleanContent.length > 0) cleanContent = cleanContent.charAt(0).toUpperCase() + cleanContent.slice(1);
 
-    // 2. Prepare Title
     const promptTitle = submittedPrompt || "AI Generated Post";
     const finalTitle = promptTitle.length > 60 ? promptTitle.substring(0, 60) + "..." : promptTitle;
-
-    // 3. Safe Email
     const userEmail = session.user.email || "";
 
     try {
-        // --- ⚡ STANDARD UTC FIX ⚡ ---
-        // Browser input: "2025-12-14T09:00" (Your Local Time)
         const dateObj = new Date(scheduledDate);
-        
-        // This converts local 9:00 AM to UTC (e.g., 3:30 AM if in IST).
-        // This is correct. The database stores UTC. The Frontend converts it back.
         const finalDate = dateObj.toISOString();
 
-        // Format Toast Message (Show local time to user)
         const displayString = dateObj.toLocaleString('en-IN', { 
             day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: true 
         });
@@ -238,7 +202,6 @@ export default function GeneratorPage() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const client = supabase as any; 
 
-        // 4. Insert into Database
         const { error } = await client.from('content_schedule').insert({
             user_id: session.user.id,
             user_email: userEmail,          
@@ -308,7 +271,6 @@ export default function GeneratorPage() {
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                 <div>
                    <p className="font-bold text-sm">Post Scheduled!</p>
-                   {/* Displays correct IST time to user */}
                    <p className="text-xs opacity-80">{scheduledDisplayString}</p> 
                 </div>
              </motion.div>
@@ -413,7 +375,27 @@ export default function GeneratorPage() {
               ) : (
                 <div className="flex-1 min-w-0">
                   <div className="bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 animate-fadeIn relative">
-                    <Typewriter text={generatedContent} onComplete={handleTypingComplete} />
+                    {/* ✅ FIXED: Gentle Animation + Clean Text (No Asterisks) */}
+                    <motion.div
+                        variants={containerVariants}
+                        initial="hidden"
+                        animate="visible"
+                        className="text-gray-300 leading-relaxed font-['Inter',sans-serif] text-sm sm:text-[15px]"
+                        style={{ lineHeight: '1.8', letterSpacing: '0.01em' }}
+                    >
+                        {generatedContent.split('\n').map((paragraph, index) => {
+                            // Clean the text here before rendering
+                            const cleanParagraph = paragraph.replace(/\*/g, '').trim();
+                            return cleanParagraph ? (
+                                <motion.p variants={childVariants} key={index} className="mb-3 last:mb-0">
+                                    {cleanParagraph}
+                                </motion.p>
+                            ) : (
+                                <br key={index} />
+                            );
+                        })}
+                    </motion.div>
+
                     <div className={`flex flex-wrap justify-end gap-2 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-white/10 transition-opacity duration-500 ${isTypingComplete ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                         <button onClick={handleCopy} className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
                             {copySuccess ? <Check size={12} className="sm:w-3.5 sm:h-3.5" /> : <Copy size={12} className="sm:w-3.5 sm:h-3.5" />}
