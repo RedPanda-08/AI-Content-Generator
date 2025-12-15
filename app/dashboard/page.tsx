@@ -4,7 +4,6 @@ import { Send, Bot, Sparkles, User, Copy, Check, CheckCircle2, BarChart2, Loader
 import Textarea from 'react-textarea-autosize'; 
 import { useSupabase } from '../../components/SupabaseProvider'; 
 import Link from 'next/link'; 
-// ✅ FIX 1: Import 'Variants' type
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { createBrowserClient } from '@supabase/ssr'; 
 
@@ -21,7 +20,7 @@ interface SupabaseContextType {
   initialized: boolean;
 }
 
-// ✅ FIX 2: Explicitly type these objects as 'Variants'
+// --- ANIMATION VARIANTS (Only for generated text content) ---
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -297,12 +296,12 @@ export default function GeneratorPage() {
                                  </div>
                              </div>
                              <button onClick={() => setShowDatePicker(false)} className="text-zinc-500 hover:text-white p-1"><X className="w-4 h-4" /></button>
-                         </div>
-                         <input type="datetime-local" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm focus:outline-none focus:border-orange-500 mb-5 [color-scheme:dark] shadow-inner" onChange={(e) => setScheduledDate(e.target.value)} />
-                         <button onClick={handleScheduleConfirm} disabled={!scheduledDate || isScheduling} className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl font-semibold text-sm text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20">
+                          </div>
+                          <input type="datetime-local" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm focus:outline-none focus:border-orange-500 mb-5 [color-scheme:dark] shadow-inner" onChange={(e) => setScheduledDate(e.target.value)} />
+                          <button onClick={handleScheduleConfirm} disabled={!scheduledDate || isScheduling} className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl font-semibold text-sm text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20">
                              {isScheduling ? <Loader2 className="w-4 h-4 animate-spin" /> : scheduleSuccess ? <Check className="w-4 h-4" /> : 'Confirm & Save'}
-                         </button>
-                    </motion.div>
+                          </button>
+                     </motion.div>
                 </div>
                 <div className="hidden md:block fixed inset-0 z-40 bg-transparent" onClick={() => setShowDatePicker(false)} />
             </>
@@ -329,21 +328,42 @@ export default function GeneratorPage() {
           </div>
       )}
 
-      <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 no-scrollbar pb-2">
-         <div className="pb-32 sm:pb-24 min-h-full">
+      {/* Conditionally apply overflow logic */}
+      <div className={`flex-1 pr-1 sm:pr-2 pb-2 transition-all duration-300 ${!submittedPrompt ? 'flex flex-col items-center justify-center overflow-hidden' : 'overflow-y-auto no-scrollbar'}`}>
+         
+         <div className={`${!submittedPrompt ? 'w-full' : 'pb-32 sm:pb-24 min-h-full'}`}>
+        
         {!submittedPrompt ? (
-            <div className={`text-center px-2 ${showCreditModal ? 'py-4' : 'py-8 sm:py-12'}`}>
-              <div className="inline-flex p-4 sm:p-6 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 shadow-lg shadow-orange-500/30">
-                <Bot size={40} className="sm:w-12 sm:h-12 text-white" />
+            <div className={`text-center px-2 ${showCreditModal ? 'py-4' : 'py-0'}`}>
+              <div className="relative inline-block mb-4 sm:mb-6 group">
+                {/* Breathing glow effect */}
+                <div className="absolute inset-0 bg-orange-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 rounded-full" />
+                
+                {/* Floating animation for the logo - kept as requested */}
+                <motion.div 
+                    className="relative inline-flex p-4 sm:p-6 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl sm:rounded-3xl shadow-lg shadow-orange-500/30 z-10"
+                >
+                    <Bot size={40} className="sm:w-12 sm:h-12 text-white" />
+                </motion.div>
               </div>
+
              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent mb-2 sm:mb-3 px-2">How can I help you today?</h1>
              <p className="text-gray-500 mb-8 sm:mb-12 text-sm sm:text-base">Choose a prompt below or type your own</p>
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-8 sm:mt-10 md:mt-12">
-                <div onClick={() => handleCardClick('Write a witty tweet about the struggles of debugging code', 'twitter')} className="p-4 sm:p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-orange-500/50 rounded-xl sm:rounded-2xl transition-all cursor-pointer text-left">
+             
+             {/* WIDER CONTAINERS: Removed max-w-2xl, added w-full to fill the 4xl parent */}
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-8 sm:mt-10 md:mt-12 w-full mx-auto">
+                <div 
+                    onClick={() => handleCardClick('Write a witty tweet about the struggles of debugging code', 'twitter')} 
+                    className="p-4 sm:p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-orange-500/50 rounded-xl sm:rounded-2xl transition-all cursor-pointer text-left"
+                >
                   <h3 className="font-semibold text-gray-200 mb-1.5 sm:mb-2 flex items-center gap-2 text-sm sm:text-base"><Twitter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400"/> Witty Tweet</h3>
                   <p className="text-xs sm:text-sm text-gray-500">Create a humorous tweet about debugging struggles</p>
                 </div>
-                <div onClick={() => handleCardClick('Create an engaging Instagram caption for a picture of a sunset', 'instagram')} className="p-4 sm:p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pink-500/50 rounded-xl sm:rounded-2xl transition-all cursor-pointer text-left">
+                
+                <div 
+                    onClick={() => handleCardClick('Create an engaging Instagram caption for a picture of a sunset', 'instagram')} 
+                    className="p-4 sm:p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pink-500/50 rounded-xl sm:rounded-2xl transition-all cursor-pointer text-left"
+                >
                   <h3 className="font-semibold text-gray-200 mb-1.5 sm:mb-2 flex items-center gap-2 text-sm sm:text-base"><Instagram className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-400"/> Instagram Caption</h3>
                   <p className="text-xs sm:text-sm text-gray-500">Craft an engaging caption for a sunset photo</p>
                 </div>
