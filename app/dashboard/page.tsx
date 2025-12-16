@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react'; 
-import { Send, Bot, Sparkles, User, Copy, Check, CheckCircle2, BarChart2, Loader2, Linkedin, Twitter, Instagram, X, Calendar as CalendarIcon, Clock, AlertTriangle, Smartphone, Eye, Edit3 } from 'lucide-react'; 
+import { Send, Bot, Sparkles, User, Copy, Check, CheckCircle2, BarChart2, Loader2, Linkedin, Twitter, Instagram, X, Calendar as CalendarIcon, Clock, AlertTriangle, Smartphone, Eye, Edit3, ArrowLeft } from 'lucide-react'; 
 import Textarea from 'react-textarea-autosize'; 
 import { useSupabase } from '../../components/SupabaseProvider'; 
 import Link from 'next/link'; 
@@ -276,50 +276,65 @@ export default function GeneratorPage() {
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      {/* --- ✅ MOBILE PREVIEW DRAWER (UPDATED) --- */}
+      {/* --- ✅ MOBILE PREVIEW DRAWER (UPDATED LAYOUT) --- */}
       <AnimatePresence>
         {showMobilePreview && (
           <>
             {/* Backdrop */}
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[60]"
+              className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[90]"
               onClick={() => setShowMobilePreview(false)}
             />
             {/* Drawer */}
             <motion.div 
               initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed right-0 top-0 bottom-0 w-full sm:w-[500px] bg-[#09090b] border-l border-white/10 z-[70] shadow-2xl flex flex-col"
+              className="fixed right-0 top-0 bottom-0 w-full sm:w-[500px] bg-[#09090b] border-l border-white/10 z-[100] shadow-2xl flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
               
-              {/* 1. Platform Switcher (Fixed at top, Header Removed) */}
-              <div className="p-6 pt-8 border-b border-white/10 flex justify-center gap-2 bg-[#09090b] shrink-0 z-20 relative">
-                  {platforms.map(p => (
-                      <button 
-                          key={p} 
-                          onClick={() => setPreviewPlatform(p)}
-                          className={`px-4 py-2 rounded-lg text-xs font-medium flex items-center gap-2 transition-all cursor-pointer ${previewPlatform === p ? 'bg-white text-black shadow-lg scale-105' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'}`}
-                      >
-                          {getPlatformIcon(p)}
-                          <span className="capitalize">{p}</span>
-                      </button>
-                  ))}
-              </div>
+              {/* ✅ CONTENT AREA: Padded nicely */}
+              <div className="flex-1 overflow-hidden bg-[#09090b] relative flex flex-col items-center justify-start pt-10 p-6">
+                     
+                 {/* 1. Navigation Row (Back button) */}
+                 <div className="w-full max-w-md flex justify-start mb-6 z-20">
+                     <button 
+                        onClick={() => setShowMobilePreview(false)}
+                        className="flex items-center gap-2 px-3 py-2 bg-zinc-900/80 hover:bg-zinc-800 rounded-full text-zinc-300 hover:text-white transition-all cursor-pointer border border-white/5"
+                     >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span className="text-sm font-medium">Back to Editor</span>
+                     </button>
+                 </div>
 
-              {/* 2. Content Area (Phone stays centered, no scroll on container) */}
-              <div className="flex-1 overflow-hidden bg-[#09090b] relative flex flex-col items-center justify-center p-6">
-                 {/* Phone Frame */}
-                 <div className="transform scale-[0.85] sm:scale-100 transition-transform origin-center shadow-2xl ring-1 ring-white/5 rounded-[3rem]">
+                 {/* 2. Platform Switcher (Centered, Breathing Space) */}
+                 <div className="flex gap-2 mb-10 bg-zinc-900/50 p-1.5 rounded-xl border border-white/10 backdrop-blur-md z-10">
+                    {platforms.map(p => (
+                        <button 
+                            key={p} 
+                            onClick={() => setPreviewPlatform(p)}
+                            className={`px-4 py-2 rounded-lg text-xs font-medium flex items-center gap-2 transition-all cursor-pointer ${previewPlatform === p ? 'bg-white text-black shadow-lg scale-105' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'}`}
+                        >
+                            {getPlatformIcon(p)}
+                            <span className="capitalize hidden sm:inline">{p}</span>
+                            {/* Short label for mobile */}
+                            <span className="capitalize sm:hidden">{p === 'linkedin' ? 'LI' : p === 'twitter' ? 'X' : 'IG'}</span>
+                        </button>
+                    ))}
+                 </div>
+
+                 {/* 3. Phone Frame (Centered, Scaled) */}
+                 <div className="transform scale-[0.9] sm:scale-100 transition-transform origin-top shadow-2xl ring-1 ring-white/5 rounded-[3rem] mb-8">
                     <SocialPostPreview content={generatedContent} platform={previewPlatform} />
                  </div>
-              </div>
 
+              </div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
+
 
       {/* --- SUCCESS TOAST --- */}
       <AnimatePresence>
