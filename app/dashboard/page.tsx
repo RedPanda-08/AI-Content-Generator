@@ -1,13 +1,16 @@
 'use client';
 import { useState, useEffect, useRef } from 'react'; 
-import { Send, Bot, Sparkles, User, Copy, Check, CheckCircle2, BarChart2, Loader2, Linkedin, Twitter, Instagram, X, Calendar as CalendarIcon, Clock, AlertTriangle } from 'lucide-react'; 
+import { Send, Bot, Sparkles, User, Copy, Check, CheckCircle2, BarChart2, Loader2, Linkedin, Twitter, Instagram, X, Calendar as CalendarIcon, Clock, AlertTriangle, Smartphone, Eye, Edit3 } from 'lucide-react'; 
 import Textarea from 'react-textarea-autosize'; 
 import { useSupabase } from '../../components/SupabaseProvider'; 
 import Link from 'next/link'; 
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { createBrowserClient } from '@supabase/ssr'; 
+import SocialPostPreview from '../../components/SocialPostPreview'; 
 
-// --- INTERFACES ---
+// --- TYPES ---
+type Platform = 'linkedin' | 'twitter' | 'instagram';
+
 interface SupabaseContextType {
   session: { 
     user?: { 
@@ -20,15 +23,12 @@ interface SupabaseContextType {
   initialized: boolean;
 }
 
-// --- ANIMATION VARIANTS (Only for generated text content) ---
+// --- ANIMATION VARIANTS ---
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1,
-    },
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
   },
 };
 
@@ -52,7 +52,7 @@ export default function GeneratorPage() {
   
   const [isReady, setIsReady] = useState(false);
   const [prompt, setPrompt] = useState('');
-  const [platform, setPlatform] = useState('linkedin');
+  const [platform, setPlatform] = useState<Platform>('linkedin');
   const [submittedPrompt, setSubmittedPrompt] = useState('');
   const [generatedContent, setGeneratedContent] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -72,7 +72,12 @@ export default function GeneratorPage() {
   const [scheduleSuccess, setScheduleSuccess] = useState(false);
   const [scheduledDisplayString, setScheduledDisplayString] = useState('');
 
+  // --- PREVIEW DRAWER STATE ---
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
+  const [previewPlatform, setPreviewPlatform] = useState<Platform>('linkedin');
+
   const scheduleContainerRef = useRef<HTMLDivElement>(null);
+  const platforms: Platform[] = ['linkedin', 'twitter', 'instagram'];
 
   useEffect(() => {
     if (initialized) { setIsReady(true); return; }
@@ -80,6 +85,10 @@ export default function GeneratorPage() {
     const timer = setTimeout(() => { if (!isReady) setIsReady(true); }, 2000);
     return () => clearTimeout(timer);
   }, [initialized, context]);
+
+  useEffect(() => {
+      setPreviewPlatform(platform);
+  }, [platform]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -92,6 +101,8 @@ export default function GeneratorPage() {
     setShowCreditModal(false); 
     setScheduleSuccess(false);
     setShowDatePicker(false);
+    
+    if (showMobilePreview) setShowMobilePreview(false);
 
     try {
       const accessToken = session?.access_token;
@@ -120,6 +131,10 @@ export default function GeneratorPage() {
       setGeneratedContent(data.content);
       setIsTypingComplete(true); 
 
+      if (data.scheduleDate) {
+          handleScheduleConfirm(data.scheduleDate, data.content);
+      }
+
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Something went wrong';
       setError(errorMessage);
@@ -129,7 +144,7 @@ export default function GeneratorPage() {
     }
   };
   
-  const handleCardClick = (text: string, platformType: string = 'twitter') => { 
+  const handleCardClick = (text: string, platformType: Platform = 'twitter') => { 
       setPrompt(text);
       setPlatform(platformType);
   };
@@ -172,17 +187,19 @@ export default function GeneratorPage() {
     }
   };
 
-  const handleScheduleConfirm = async () => {
-    if (!scheduledDate || !generatedContent || !session?.user) {
-        console.error("Missing Data:", { scheduledDate, user: session?.user });
+  const handleScheduleConfirm = async (dateOverride?: string, contentOverride?: string) => {
+    const dateToUse = dateOverride || scheduledDate;
+    const contentToUse = contentOverride || generatedContent;
+
+    if (!dateToUse || !contentToUse || !session?.user) {
+        console.error("Missing Data:", { dateToUse, user: session?.user });
         return;
     }
     
     setIsScheduling(true);
     setError(null);
 
-    // Clean text before saving
-    let cleanContent = generatedContent.replace(/[\uFFFD\uFEFF]/g, '').replace(/\*/g, '').trim();
+    let cleanContent = contentToUse.replace(/[\uFFFD\uFEFF]/g, '').replace(/\*/g, '').trim();
     if (cleanContent.startsWith('"') && cleanContent.endsWith('"')) cleanContent = cleanContent.slice(1, -1);
     else if (cleanContent.startsWith("'") && cleanContent.endsWith("'")) cleanContent = cleanContent.slice(1, -1);
     if (cleanContent.length > 0) cleanContent = cleanContent.charAt(0).toUpperCase() + cleanContent.slice(1);
@@ -192,7 +209,7 @@ export default function GeneratorPage() {
     const userEmail = session.user.email || "";
 
     try {
-        const dateObj = new Date(scheduledDate);
+        const dateObj = new Date(dateToUse);
         const finalDate = dateObj.toISOString();
 
         const displayString = dateObj.toLocaleString('en-IN', { 
@@ -224,11 +241,7 @@ export default function GeneratorPage() {
         
     } catch (err: unknown) {
         let msg = "Failed to schedule.";
-        if (err instanceof Error) {
-            msg = err.message;
-        } else if (typeof err === "object" && err !== null && "message" in err) {
-            msg = (err as { message: string }).message;
-        }
+        if (err instanceof Error) msg = err.message;
         console.error("Schedule error:", msg);
         setError(msg);
     } finally {
@@ -258,7 +271,55 @@ export default function GeneratorPage() {
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
+        /* Hide scrollbar for preview frame drawer */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
+
+      {/* --- ✅ MOBILE PREVIEW DRAWER (UPDATED) --- */}
+      <AnimatePresence>
+        {showMobilePreview && (
+          <>
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[60]"
+              onClick={() => setShowMobilePreview(false)}
+            />
+            {/* Drawer */}
+            <motion.div 
+              initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="fixed right-0 top-0 bottom-0 w-full sm:w-[500px] bg-[#09090b] border-l border-white/10 z-[70] shadow-2xl flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              
+              {/* 1. Platform Switcher (Fixed at top, Header Removed) */}
+              <div className="p-6 pt-8 border-b border-white/10 flex justify-center gap-2 bg-[#09090b] shrink-0 z-20 relative">
+                  {platforms.map(p => (
+                      <button 
+                          key={p} 
+                          onClick={() => setPreviewPlatform(p)}
+                          className={`px-4 py-2 rounded-lg text-xs font-medium flex items-center gap-2 transition-all cursor-pointer ${previewPlatform === p ? 'bg-white text-black shadow-lg scale-105' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'}`}
+                      >
+                          {getPlatformIcon(p)}
+                          <span className="capitalize">{p}</span>
+                      </button>
+                  ))}
+              </div>
+
+              {/* 2. Content Area (Phone stays centered, no scroll on container) */}
+              <div className="flex-1 overflow-hidden bg-[#09090b] relative flex flex-col items-center justify-center p-6">
+                 {/* Phone Frame */}
+                 <div className="transform scale-[0.85] sm:scale-100 transition-transform origin-center shadow-2xl ring-1 ring-white/5 rounded-[3rem]">
+                    <SocialPostPreview content={generatedContent} platform={previewPlatform} />
+                 </div>
+              </div>
+
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* --- SUCCESS TOAST --- */}
       <AnimatePresence>
@@ -267,7 +328,7 @@ export default function GeneratorPage() {
                 initial={{ opacity: 0, y: -20 }} 
                 animate={{ opacity: 1, y: 0 }} 
                 exit={{ opacity: 0, y: -20 }}
-                className="fixed top-4 right-4 z-50 bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 backdrop-blur-md"
+                className="fixed top-4 right-4 z-50 bg-emerald-500/10 border border-emerald-500/20 text-emerald-200 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 backdrop-blur-md cursor-pointer"
              >
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                 <div>
@@ -284,24 +345,23 @@ export default function GeneratorPage() {
                 <div className="fixed inset-0 z-50 flex md:hidden items-center justify-center p-4">
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowDatePicker(false)} />
                      <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} onClick={(e) => e.stopPropagation()} className="bg-[#121212] border border-white/10 p-6 rounded-3xl shadow-2xl w-full max-w-xs relative overflow-hidden z-10">
-                          <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -z-10" />
-                          <div className="flex justify-between items-start mb-4">
-                             <div className="flex items-center gap-3">
-                                 <div className="p-2.5 bg-zinc-800 rounded-xl">
-                                     <Clock className="w-5 h-5 text-orange-400" />
-                                 </div>
-                                 <div>
-                                     <h3 className="text-base font-bold text-white leading-tight">Schedule</h3>
-                                     <p className="text-[11px] text-zinc-400">Pick a time to post</p>
-                                 </div>
-                             </div>
-                             <button onClick={() => setShowDatePicker(false)} className="text-zinc-500 hover:text-white p-1"><X className="w-4 h-4" /></button>
-                          </div>
-                          <input type="datetime-local" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm focus:outline-none focus:border-orange-500 mb-5 [color-scheme:dark] shadow-inner" onChange={(e) => setScheduledDate(e.target.value)} />
-                          <button onClick={handleScheduleConfirm} disabled={!scheduledDate || isScheduling} className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl font-semibold text-sm text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20">
-                             {isScheduling ? <Loader2 className="w-4 h-4 animate-spin" /> : scheduleSuccess ? <Check className="w-4 h-4" /> : 'Confirm & Save'}
-                          </button>
-                     </motion.div>
+                         <div className="flex justify-between items-start mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-zinc-800 rounded-xl">
+                                    <Clock className="w-5 h-5 text-orange-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-bold text-white leading-tight">Schedule</h3>
+                                    <p className="text-[11px] text-zinc-400">Pick a time to post</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowDatePicker(false)} className="text-zinc-500 hover:text-white p-1 cursor-pointer"><X className="w-4 h-4" /></button>
+                        </div>
+                        <input type="datetime-local" className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm focus:outline-none focus:border-orange-500 mb-5 [color-scheme:dark]" onChange={(e) => setScheduledDate(e.target.value)} />
+                        <button onClick={() => handleScheduleConfirm()} disabled={!scheduledDate || isScheduling} className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl font-semibold text-sm text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 cursor-pointer">
+                            {isScheduling ? <Loader2 className="w-4 h-4 animate-spin" /> : scheduleSuccess ? <Check className="w-4 h-4" /> : 'Confirm & Save'}
+                        </button>
+                    </motion.div>
                 </div>
                 <div className="hidden md:block fixed inset-0 z-40 bg-transparent" onClick={() => setShowDatePicker(false)} />
             </>
@@ -309,26 +369,24 @@ export default function GeneratorPage() {
       </AnimatePresence>
 
       {showCreditModal && (
-          <div className="w-full mt-2 sm:mt-6 mb-2 animate-fadeIn flex-shrink-0 z-20">
-              <div className="bg-zinc-900 border border-red-500/50 rounded-xl shadow-lg shadow-red-500/10 p-4 relative flex flex-col gap-3">
+          <div className="w-full mt-6 mb-2 animate-fadeIn flex-shrink-0 z-20">
+              <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-4 relative flex flex-col gap-2">
                   <div className="flex justify-between items-start">
-                      <div className="flex items-center gap-3">
-                          <div className="p-2 bg-red-500/10 rounded-full flex-shrink-0">
-                             {isGuestAccount ? <Sparkles className="w-5 h-5 text-red-400" /> : <AlertTriangle className="w-5 h-5 text-red-400" />}
-                          </div>
-                          <h3 className="text-base font-bold text-white leading-tight">{isGuestAccount ? 'Trial Complete!' : 'Credits Depleted'}</h3>
+                      <div className="flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4 text-red-400" />
+                          <h3 className="text-sm font-semibold text-red-200">{isGuestAccount ? 'Trial Ended' : 'Credits Depleted'}</h3>
                       </div>
-                      <button onClick={() => setShowCreditModal(false)} className="text-zinc-500 hover:text-white transition-colors p-1"><X className="w-4 h-4" /></button>
+                      <button onClick={() => setShowCreditModal(false)} className="text-red-400 hover:text-white transition-colors cursor-pointer"><X className="w-4 h-4" /></button>
                   </div>
-                  <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">{isGuestAccount ? 'Your 3 free posts are used. Sign up now to get 500 more tokens instantly.' : 'You have used all your available credits. Get more to continue generating content.'}</p>
+                  <p className="text-xs text-red-200/70">{isGuestAccount ? 'Your free posts are used.' : 'You have used all available credits.'}</p>
                   <div className="flex gap-2 w-full">
-                      <Link href={isGuestAccount ? '/login' : '/pricing'} className="flex-1 py-2 text-center bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-md">{isGuestAccount ? 'Get 500 Tokens' : 'Get More Credits'}</Link>
+                      <Link href={isGuestAccount ? '/login' : '/pricing'} className="flex-1 py-2 text-center bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-md cursor-pointer">{isGuestAccount ? 'Get 500 Tokens' : 'Get More Credits'}</Link>
                   </div>
               </div>
           </div>
       )}
 
-      {/* Conditionally apply overflow logic */}
+      {/* --- DASHBOARD CONTENT --- */}
       <div className={`flex-1 pr-1 sm:pr-2 pb-2 transition-all duration-300 ${!submittedPrompt ? 'flex flex-col items-center justify-center overflow-hidden' : 'overflow-y-auto no-scrollbar'}`}>
          
          <div className={`${!submittedPrompt ? 'w-full' : 'pb-32 sm:pb-24 min-h-full'}`}>
@@ -336,13 +394,8 @@ export default function GeneratorPage() {
         {!submittedPrompt ? (
             <div className={`text-center px-2 ${showCreditModal ? 'py-4' : 'py-0'}`}>
               <div className="relative inline-block mb-4 sm:mb-6 group">
-                {/* Breathing glow effect */}
                 <div className="absolute inset-0 bg-orange-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 rounded-full" />
-                
-                {/* Floating animation for the logo - kept as requested */}
-                <motion.div 
-                    className="relative inline-flex p-4 sm:p-6 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl sm:rounded-3xl shadow-lg shadow-orange-500/30 z-10"
-                >
+                <motion.div className="relative inline-flex p-4 sm:p-6 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl sm:rounded-3xl shadow-lg shadow-orange-500/30 z-10">
                     <Bot size={40} className="sm:w-12 sm:h-12 text-white" />
                 </motion.div>
               </div>
@@ -350,20 +403,12 @@ export default function GeneratorPage() {
              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent mb-2 sm:mb-3 px-2">How can I help you today?</h1>
              <p className="text-gray-500 mb-8 sm:mb-12 text-sm sm:text-base">Choose a prompt below or type your own</p>
              
-             {/* WIDER CONTAINERS: Removed max-w-2xl, added w-full to fill the 4xl parent */}
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-8 sm:mt-10 md:mt-12 w-full mx-auto">
-                <div 
-                    onClick={() => handleCardClick('Write a witty tweet about the struggles of debugging code', 'twitter')} 
-                    className="p-4 sm:p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-orange-500/50 rounded-xl sm:rounded-2xl transition-all cursor-pointer text-left"
-                >
+                <div onClick={() => handleCardClick('Write a witty tweet about the struggles of debugging code', 'twitter')} className="p-4 sm:p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-orange-500/50 rounded-xl sm:rounded-2xl transition-all cursor-pointer text-left">
                   <h3 className="font-semibold text-gray-200 mb-1.5 sm:mb-2 flex items-center gap-2 text-sm sm:text-base"><Twitter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400"/> Witty Tweet</h3>
                   <p className="text-xs sm:text-sm text-gray-500">Create a humorous tweet about debugging struggles</p>
                 </div>
-                
-                <div 
-                    onClick={() => handleCardClick('Create an engaging Instagram caption for a picture of a sunset', 'instagram')} 
-                    className="p-4 sm:p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pink-500/50 rounded-xl sm:rounded-2xl transition-all cursor-pointer text-left"
-                >
+                <div onClick={() => handleCardClick('Create an engaging Instagram caption for a picture of a sunset', 'instagram')} className="p-4 sm:p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-pink-500/50 rounded-xl sm:rounded-2xl transition-all cursor-pointer text-left">
                   <h3 className="font-semibold text-gray-200 mb-1.5 sm:mb-2 flex items-center gap-2 text-sm sm:text-base"><Instagram className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-400"/> Instagram Caption</h3>
                   <p className="text-xs sm:text-sm text-gray-500">Craft an engaging caption for a sunset photo</p>
                 </div>
@@ -417,13 +462,21 @@ export default function GeneratorPage() {
                     </motion.div>
 
                     <div className={`flex flex-wrap justify-end gap-2 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-white/10 transition-opacity duration-500 ${isTypingComplete ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                        <button onClick={handleCopy} className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors">
+                        {/* ✅ PREVIEW BUTTON */}
+                        <button 
+                            onClick={() => setShowMobilePreview(true)}
+                            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
+                        >
+                            <Smartphone size={12} className="sm:w-3.5 sm:h-3.5" /> Preview
+                        </button>
+
+                        <button onClick={handleCopy} className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer">
                             {copySuccess ? <Check size={12} className="sm:w-3.5 sm:h-3.5" /> : <Copy size={12} className="sm:w-3.5 sm:h-3.5" />}
                             {copySuccess ? 'Copied' : 'Copy'}
                         </button>
                         
                         <div className="relative z-50" ref={scheduleContainerRef}>
-                            <button onClick={() => setShowDatePicker(!showDatePicker)} className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors ${showDatePicker ? 'bg-white/20 text-white' : ''}`}>
+                            <button onClick={() => setShowDatePicker(!showDatePicker)} className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer ${showDatePicker ? 'bg-white/20 text-white' : ''}`}>
                                 <CalendarIcon size={12} className="sm:w-3.5 sm:h-3.5" />
                                 Schedule
                             </button>
@@ -434,7 +487,7 @@ export default function GeneratorPage() {
                                                 <span className="text-xs font-bold text-gray-300 flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-orange-500" /> Pick Date & Time</span>
                                             </div>
                                             <input type="datetime-local" className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-white text-xs focus:outline-none focus:border-orange-500 mb-3 [color-scheme:dark]" onChange={(e) => setScheduledDate(e.target.value)} />
-                                            <button onClick={handleScheduleConfirm} disabled={!scheduledDate || isScheduling} className="w-full py-2 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg font-semibold text-xs text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2">
+                                            <button onClick={() => handleScheduleConfirm()} disabled={!scheduledDate || isScheduling} className="w-full py-2 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg font-semibold text-xs text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer">
                                                 {isScheduling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : scheduleSuccess ? <Check className="w-3.5 h-3.5" /> : 'Confirm'}
                                                 {scheduleSuccess && ' Done!'}
                                             </button>
@@ -443,7 +496,7 @@ export default function GeneratorPage() {
                             </AnimatePresence>
                         </div>
 
-                        <button onClick={handleAnalyze} disabled={isAnalyzing} className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 rounded-lg transition-colors disabled:opacity-50">
+                        <button onClick={handleAnalyze} disabled={isAnalyzing} className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 rounded-lg transition-colors disabled:opacity-50 cursor-pointer">
                             {isAnalyzing ? <Loader2 size={12} className="sm:w-3.5 sm:h-3.5 animate-spin" /> : <BarChart2 size={12} className="sm:w-3.5 sm:h-3.5" />}
                             Analyze
                         </button>
@@ -486,8 +539,8 @@ export default function GeneratorPage() {
           <div className="flex flex-wrap items-center gap-2 px-3 sm:px-4 py-2 border-b border-white/5">
             <span className="text-[10px] sm:text-xs text-gray-500 font-medium">Target Platform:</span>
             <div className="flex gap-1 flex-wrap">
-                {['linkedin', 'twitter', 'instagram'].map((p) => (
-                    <button key={p} onClick={() => setPlatform(p)} className={`px-2 sm:px-2.5 md:px-3 py-1 rounded-full text-[10px] sm:text-xs flex items-center gap-1 transition-all whitespace-nowrap ${platform === p ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-transparent text-gray-400 hover:bg-white/5 hover:text-gray-300'}`}>
+                {platforms.map((p) => (
+                    <button key={p} onClick={() => setPlatform(p)} className={`px-2 sm:px-2.5 md:px-3 py-1 rounded-full text-[10px] sm:text-xs flex items-center gap-1 transition-all whitespace-nowrap cursor-pointer ${platform === p ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-transparent text-gray-400 hover:bg-white/5 hover:text-gray-300'}`}>
                         {getPlatformIcon(p)}
                         <span>{p.charAt(0).toUpperCase() + p.slice(1)}</span>
                     </button>
@@ -495,7 +548,7 @@ export default function GeneratorPage() {
             </div>
           </div>
           <Textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder={`Write a ${platform} post about...`} className="w-full bg-transparent text-gray-200 placeholder-gray-500 rounded-b-xl sm:rounded-b-2xl py-3 sm:py-4 pl-3 sm:pl-4 md:pl-6 pr-12 sm:pr-14 md:pr-16 resize-none outline-none text-sm sm:text-base font-['Inter',sans-serif]" minRows={1} maxRows={6} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGenerate(); } }} />
-          <button onClick={handleGenerate} disabled={!prompt.trim() || isGenerating} className="absolute right-2 sm:right-3 bottom-2 sm:bottom-3 p-2 sm:p-2.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg sm:rounded-xl transition-all shadow-lg hover:scale-105 active:scale-95 disabled:scale-100 disabled:opacity-50"><Send className="w-4 h-4 sm:w-5 sm:h-5 text-white" /></button>
+          <button onClick={handleGenerate} disabled={!prompt.trim() || isGenerating} className="absolute right-2 sm:right-3 bottom-2 sm:bottom-3 p-2 sm:p-2.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg sm:rounded-xl transition-all shadow-lg hover:scale-105 active:scale-95 disabled:scale-100 disabled:opacity-50 cursor-pointer"><Send className="w-4 h-4 sm:w-5 sm:h-5 text-white" /></button>
         </div>
         <p className="text-[10px] sm:text-xs text-gray-600 text-center mt-2 sm:mt-3 px-2">ContentAI can make mistakes. Consider checking important information.</p>
       </div>
