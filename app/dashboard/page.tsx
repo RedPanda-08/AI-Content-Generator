@@ -291,11 +291,11 @@ export default function GeneratorPage() {
               onClick={(e) => e.stopPropagation()}
             >
               
-              {/* ✅ CONTENT AREA: Compact top section, auto-scaled phone */}
+              {/* ✅ CONTENT AREA: Padded at top to avoid hamburger */}
               <div className="flex-1 overflow-hidden bg-[#09090b] relative flex flex-col items-center justify-start pt-6 p-4 h-full">
                      
                  {/* 1. Header Row: Back Button & Toggles together */}
-                 <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 shrink-0 z-20">
+                 <div className="w-full max-w-md flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 shrink-0 z-20">
                      
                      <button 
                         onClick={() => setShowMobilePreview(false)}
@@ -322,8 +322,9 @@ export default function GeneratorPage() {
                  </div>
 
                  {/* 3. Phone Frame (Centered, Scaled down on mobile to fit) */}
+                 {/* ✅ Added mt-8 here */}
                  <div className="flex-1 w-full flex items-center justify-center overflow-hidden pb-4">
-                     <div className="transform scale-[0.75] sm:scale-100 transition-transform origin-center shadow-2xl ring-1 ring-white/5 rounded-[3rem]">
+                     <div className="transform scale-[0.75] sm:scale-100 transition-transform origin-center shadow-2xl ring-1 ring-white/5 rounded-[3rem] mt-8">
                         <SocialPostPreview content={generatedContent} platform={previewPlatform} />
                      </div>
                  </div>
@@ -356,8 +357,9 @@ export default function GeneratorPage() {
       <AnimatePresence>
         {showDatePicker && (
             <>
+                {/* Mobile overlay with high z-index */}
                 <div className="fixed inset-0 z-[100] flex md:hidden items-center justify-center p-4">
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowDatePicker(false)} />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowDatePicker(false)} />
                      <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} onClick={(e) => e.stopPropagation()} className="bg-[#121212] border border-white/10 p-6 rounded-3xl shadow-2xl w-full max-w-xs relative overflow-hidden z-10">
                          <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center gap-3">
@@ -389,13 +391,13 @@ export default function GeneratorPage() {
                   <div className="flex justify-between items-start">
                       <div className="flex items-center gap-2">
                           <AlertTriangle className="w-4 h-4 text-red-400" />
-                          <h3 className="text-sm font-semibold text-red-200">{isGuestAccount ? 'Trial Ended' : 'Credits Depleted'}</h3>
+                          <h3 className="text-sm font-semibold text-red-200">{isGuestAccount ? 'Trial Ended' : 'All Credits Used'}</h3>
                       </div>
                       <button onClick={() => setShowCreditModal(false)} className="text-red-400 hover:text-white transition-colors cursor-pointer"><X className="w-4 h-4" /></button>
                   </div>
                   <p className="text-xs text-red-200/70">{isGuestAccount ? 'Your free posts are used.' : 'You have used all available credits.'}</p>
                   <div className="flex gap-2 w-full">
-                      <Link href={isGuestAccount ? '/login' : '/pricing'} className="flex-1 py-2 text-center bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-md cursor-pointer">{isGuestAccount ? 'Get 500 Tokens' : 'Get More Credits'}</Link>
+                      <Link href={isGuestAccount ? '/login' : '/dashboard/subscriptions'} className="flex-1 py-2 text-center bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-md cursor-pointer">{isGuestAccount ? 'Get 500 Tokens' : 'Get More Credits'}</Link>
                   </div>
               </div>
           </div>
@@ -491,23 +493,22 @@ export default function GeneratorPage() {
                         </button>
                         
                         <div className="relative z-50" ref={scheduleContainerRef}>
-                            {/* Hide Schedule button if modal is open to avoid Z-index clash */}
-                            {!showDatePicker && (
-                                <button onClick={() => setShowDatePicker(!showDatePicker)} className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer ${showDatePicker ? 'bg-white/20 text-white' : ''}`}>
-                                    <CalendarIcon size={12} className="sm:w-3.5 sm:h-3.5" />
-                                    Schedule
-                                </button>
-                            )}
+                            {/* ✅ FIXED: Button stays visible, only modal opens on top */}
+                            <button onClick={() => setShowDatePicker(!showDatePicker)} className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer ${showDatePicker ? 'bg-white/20 text-white' : ''}`}>
+                                <CalendarIcon size={12} className="sm:w-3.5 sm:h-3.5" />
+                                Schedule
+                            </button>
+                            
                             <AnimatePresence>
                                 {showDatePicker && (
                                     <motion.div initial={{ opacity: 0, y: 5, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 5, scale: 0.98 }} transition={{ duration: 0.2 }} onClick={(e) => e.stopPropagation()} className="hidden md:block absolute right-0 bottom-full mb-2 w-72 bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl z-50 p-4">
-                                            <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center justify-between mb-3 ">
                                                 <span className="text-xs font-bold text-gray-300 flex items-center gap-2"><Clock className="w-3.5 h-3.5 text-orange-500" /> Pick Date & Time</span>
                                             </div>
                                             <input type="datetime-local" className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2.5 text-white text-xs focus:outline-none focus:border-orange-500 mb-3 [color-scheme:dark]" onChange={(e) => setScheduledDate(e.target.value)} />
                                             <button onClick={() => handleScheduleConfirm()} disabled={!scheduledDate || isScheduling} className="w-full py-2 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg font-semibold text-xs text-white hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer">
                                                 {isScheduling ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : scheduleSuccess ? <Check className="w-3.5 h-3.5" /> : 'Confirm'}
-                                                {scheduleSuccess && ' Done!'}
+                                                {scheduleSuccess && ' Scheduled!'}
                                             </button>
                                     </motion.div>
                                 )}
