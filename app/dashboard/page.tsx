@@ -251,7 +251,7 @@ export default function GeneratorPage() {
 
   if (!isReady) {
       return (
-        <div className="flex h-[100svh] items-center justify-center">
+        <div className="flex h-[100dvh] items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
         </div>
       );
@@ -265,18 +265,15 @@ export default function GeneratorPage() {
   };
 
   return (
-    <div className="flex flex-col h-[100svh] overflow-hidden max-w-4xl mx-auto px-4 pt-20 sm:pt-4 relative">
+    <div className="flex flex-col h-[100dvh] overflow-hidden max-w-4xl mx-auto px-4 pt-20 sm:pt-4 relative">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
-        /* Hide scrollbar for preview frame drawer */
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      {/* --- ✅ MOBILE PREVIEW DRAWER (UPDATED LAYOUT) --- */}
+      {/* --- ✅ MOBILE PREVIEW DRAWER (UPDATED) --- */}
       <AnimatePresence>
         {showMobilePreview && (
           <>
@@ -286,47 +283,49 @@ export default function GeneratorPage() {
               className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[90]"
               onClick={() => setShowMobilePreview(false)}
             />
-            {/* Drawer */}
+            {/* Drawer - H-[100dvh] for full mobile height */}
             <motion.div 
               initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed right-0 top-0 bottom-0 w-full sm:w-[500px] bg-[#09090b] border-l border-white/10 z-[100] shadow-2xl flex flex-col"
+              className="fixed right-0 top-0 bottom-0 w-full sm:w-[500px] bg-[#09090b] border-l border-white/10 z-[100] shadow-2xl flex flex-col h-[100dvh]"
               onClick={(e) => e.stopPropagation()}
             >
               
-              {/* ✅ CONTENT AREA: Padded nicely */}
-              <div className="flex-1 overflow-hidden bg-[#09090b] relative flex flex-col items-center justify-start pt-10 p-6">
+              {/* ✅ CONTENT AREA: Compact top section, auto-scaled phone */}
+              <div className="flex-1 overflow-hidden bg-[#09090b] relative flex flex-col items-center justify-start pt-6 p-4 h-full">
                      
-                 {/* 1. Navigation Row (Back button) */}
-                 <div className="w-full max-w-md flex justify-start mb-6 z-20">
+                 {/* 1. Header Row: Back Button & Toggles together */}
+                 <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 shrink-0 z-20">
+                     
                      <button 
                         onClick={() => setShowMobilePreview(false)}
-                        className="flex items-center gap-2 px-3 py-2 bg-zinc-900/80 hover:bg-zinc-800 rounded-full text-zinc-300 hover:text-white transition-all cursor-pointer border border-white/5"
+                        className="flex items-center gap-2 px-3 py-2 bg-zinc-900/80 hover:bg-zinc-800 rounded-full text-zinc-300 hover:text-white transition-all cursor-pointer border border-white/5 self-start sm:self-auto"
                      >
-                        <ArrowLeft className="w-4 h-4" />
+                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                         <span className="text-sm font-medium">Back to Editor</span>
                      </button>
+
+                     {/* Platform Toggles - Full Names */}
+                     <div className="flex gap-1.5 bg-zinc-900/50 p-1 rounded-xl border border-white/10 backdrop-blur-md">
+                        {platforms.map(p => (
+                            <button 
+                                key={p} 
+                                onClick={() => setPreviewPlatform(p)}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer ${previewPlatform === p ? 'bg-white text-black shadow-lg' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'}`}
+                            >
+                                {getPlatformIcon(p)}
+                                {/* ✅ Always visible name */}
+                                <span className="capitalize">{p}</span>
+                            </button>
+                        ))}
+                     </div>
                  </div>
 
-                 {/* 2. Platform Switcher (Centered, Breathing Space) */}
-                 <div className="flex gap-2 mb-10 bg-zinc-900/50 p-1.5 rounded-xl border border-white/10 backdrop-blur-md z-10">
-                    {platforms.map(p => (
-                        <button 
-                            key={p} 
-                            onClick={() => setPreviewPlatform(p)}
-                            className={`px-4 py-2 rounded-lg text-xs font-medium flex items-center gap-2 transition-all cursor-pointer ${previewPlatform === p ? 'bg-white text-black shadow-lg scale-105' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'}`}
-                        >
-                            {getPlatformIcon(p)}
-                            <span className="capitalize hidden sm:inline">{p}</span>
-                            {/* Short label for mobile */}
-                            <span className="capitalize sm:hidden">{p === 'linkedin' ? 'LI' : p === 'twitter' ? 'X' : 'IG'}</span>
-                        </button>
-                    ))}
-                 </div>
-
-                 {/* 3. Phone Frame (Centered, Scaled) */}
-                 <div className="transform scale-[0.9] sm:scale-100 transition-transform origin-top shadow-2xl ring-1 ring-white/5 rounded-[3rem] mb-8">
-                    <SocialPostPreview content={generatedContent} platform={previewPlatform} />
+                 {/* 3. Phone Frame (Centered, Scaled down on mobile to fit) */}
+                 <div className="flex-1 w-full flex items-center justify-center overflow-hidden pb-4">
+                     <div className="transform scale-[0.75] sm:scale-100 transition-transform origin-center shadow-2xl ring-1 ring-white/5 rounded-[3rem]">
+                        <SocialPostPreview content={generatedContent} platform={previewPlatform} />
+                     </div>
                  </div>
 
               </div>
@@ -357,8 +356,8 @@ export default function GeneratorPage() {
       <AnimatePresence>
         {showDatePicker && (
             <>
-                <div className="fixed inset-0 z-50 flex md:hidden items-center justify-center p-4">
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowDatePicker(false)} />
+                <div className="fixed inset-0 z-[100] flex md:hidden items-center justify-center p-4">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowDatePicker(false)} />
                      <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} onClick={(e) => e.stopPropagation()} className="bg-[#121212] border border-white/10 p-6 rounded-3xl shadow-2xl w-full max-w-xs relative overflow-hidden z-10">
                          <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center gap-3">
@@ -378,6 +377,7 @@ export default function GeneratorPage() {
                         </button>
                     </motion.div>
                 </div>
+                {/* Desktop overlay */}
                 <div className="hidden md:block fixed inset-0 z-40 bg-transparent" onClick={() => setShowDatePicker(false)} />
             </>
         )}
@@ -491,10 +491,13 @@ export default function GeneratorPage() {
                         </button>
                         
                         <div className="relative z-50" ref={scheduleContainerRef}>
-                            <button onClick={() => setShowDatePicker(!showDatePicker)} className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer ${showDatePicker ? 'bg-white/20 text-white' : ''}`}>
-                                <CalendarIcon size={12} className="sm:w-3.5 sm:h-3.5" />
-                                Schedule
-                            </button>
+                            {/* Hide Schedule button if modal is open to avoid Z-index clash */}
+                            {!showDatePicker && (
+                                <button onClick={() => setShowDatePicker(!showDatePicker)} className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer ${showDatePicker ? 'bg-white/20 text-white' : ''}`}>
+                                    <CalendarIcon size={12} className="sm:w-3.5 sm:h-3.5" />
+                                    Schedule
+                                </button>
+                            )}
                             <AnimatePresence>
                                 {showDatePicker && (
                                     <motion.div initial={{ opacity: 0, y: 5, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 5, scale: 0.98 }} transition={{ duration: 0.2 }} onClick={(e) => e.stopPropagation()} className="hidden md:block absolute right-0 bottom-full mb-2 w-72 bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl z-50 p-4">
