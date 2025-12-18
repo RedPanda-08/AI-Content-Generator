@@ -6,6 +6,7 @@ import { useSupabase } from '../components/SupabaseProvider';
 import { Bot, Zap, BarChart2, Lightbulb, TrendingUp, Star, Sparkles, ArrowRight, Users, Clock, Target, Loader2, Check, X, AlertCircle, FileText, Calendar as CalendarIcon } from 'lucide-react';
 import { motion} from 'framer-motion';
 import TestimonialSection from '../components/TestimonialSection';
+import PhonePreview from '@/components/PhonePreview';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -260,6 +261,47 @@ export default function HomePage() {
           </motion.div>
         </motion.div>
       </section>
+
+     {/* --- INTERACTIVE SHOWCASE --- */}
+<section className="py-24 relative overflow-hidden bg-black">
+  {/* Graph Background Effect - Increased visibility and added radial mask */}
+  <div 
+    className="absolute inset-0 z-0 pointer-events-none" 
+    style={{ 
+      backgroundImage: `
+        linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px), 
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px)
+      `,
+      backgroundSize: '45px 45px',
+      maskImage: 'radial-gradient(circle at center, black 40%, transparent 80%)',
+      WebkitMaskImage: 'radial-gradient(circle at center, black 40%, transparent 80%)'
+    }}
+  />
+  
+  {/* Ambient Glow to make the grid pop */}
+  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-500/10 rounded-full blur-[120px] pointer-events-none" />
+
+  <div className="max-w-7xl mx-auto px-4 relative z-10">
+    <motion.div 
+      initial="hidden" 
+      whileInView="visible" 
+      viewport={{ once: true }} 
+      variants={staggerContainer} 
+      className="text-center mb-20"
+    >
+      <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl font-bold mb-6">
+        Experience the <span className="bg-gradient-to-r from-orange-400 to-pink-500 bg-clip-text text-transparent">Final Result</span>
+      </motion.h2>
+      <motion.p variants={fadeInUp} className="text-gray-400 text-lg max-w-2xl mx-auto font-light">
+        Toggle between platforms and see exactly how your AI-generated content transforms for your audience.
+      </motion.p>
+    </motion.div>
+    
+    <div className="flex justify-center">
+      <PhonePreview />
+    </div>
+  </div>
+</section>
 
       {/* --- BRAND TICKER SECTION (OFFICIAL LOGOS) --- */}
       <motion.section 
