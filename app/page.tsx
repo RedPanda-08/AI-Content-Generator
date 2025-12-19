@@ -7,7 +7,7 @@ import { Zap, BarChart2, Lightbulb, TrendingUp, Star, Sparkles, ArrowRight, User
 import { motion} from 'framer-motion';
 import TestimonialSection from '../components/TestimonialSection';
 import PhonePreview from '@/components/PhonePreview';
-import Logo from '@/components/Logo'; // Your Logo Import
+import Logo from '@/components/Logo'; 
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },

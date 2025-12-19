@@ -30,27 +30,31 @@ export default function FeedbackWidget() {
   const [success, setSuccess] = useState(false);
 
   const { session, supabase } = (useSupabase() as unknown as SupabaseContextType) || {};
-  const isGenerator = pathname === '/dashboard';
+  
+  // ✅ UPDATED LOGIC: Check if we are on ANY dashboard page (Generator, History, Settings, Calendar)
+  const isDashboardPage = pathname?.startsWith('/dashboard');
   
   // --- POSITIONING LOGIC ---
-  // Mobile & Tablet (< 1024px): Top Right (top-4 to align with hamburger icon)
-  // Desktop (>= 1024px): Bottom Right.
-  const positionClasses = isGenerator 
+  // Mobile: Top Right (top-4) to match hamburger menu
+  // Desktop: Bottom Right (standard)
+  const positionClasses = isDashboardPage 
     ? 'top-4 right-4 lg:top-auto lg:bottom-8 lg:right-8' 
     : 'bottom-4 right-4 sm:bottom-6 sm:right-6';
 
   // --- FLEX DIRECTION ---
-  const flexDirection = isGenerator
+  // Mobile Dashboard: Button on top, Popup below (flex-col-reverse)
+  // Desktop/Others: Popup on top, Button below (flex-col)
+  const flexDirection = isDashboardPage
     ? 'flex-col-reverse lg:flex-col'
     : 'flex-col';
 
   // --- MARGINS ---
-  const popupMargins = isGenerator
+  const popupMargins = isDashboardPage
     ? 'mt-3 lg:mt-0 lg:mb-3'
     : 'mb-3';
 
   // --- TOOLTIP POSITION ---
-  const tooltipPosition = isGenerator
+  const tooltipPosition = isDashboardPage
     ? 'top-full mt-2 lg:top-auto lg:bottom-full lg:mb-2 lg:mt-0 slide-in-from-top-2 lg:slide-in-from-bottom-2'
     : 'bottom-full mb-2 slide-in-from-bottom-2';
 
@@ -98,14 +102,13 @@ export default function FeedbackWidget() {
   };
 
   return (
-    // Changed z-30 to z-50 to ensure it sits on top of any navbar elements
     <div className={`fixed z-50 flex items-end transition-all duration-300 ${positionClasses} ${flexDirection}`}>
       
       {/* POPUP FORM CONTAINER */}
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            key="feedback-popup-modal" // ADDED KEY FOR STABILITY
+            key="feedback-popup-modal"
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
