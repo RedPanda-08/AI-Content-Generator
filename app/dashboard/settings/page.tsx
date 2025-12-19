@@ -33,12 +33,10 @@ export default function SettingsPage() {
   };
 
   useEffect(() => {
-    // MODIFIED: We no longer fetch previous data. 
-    // We just turn off the loading state so the page renders blank.
     setLoading(false);
   }, []); 
 
-  // --- NEW: LOGIC TO GENERATE KEYWORDS BASED ON SLIDERS ---
+  // --- LOGIC TO GENERATE KEYWORDS BASED ON SLIDERS ---
   const handleMagicKeywords = () => {
     setIsGeneratingKeywords(true);
     
@@ -184,7 +182,8 @@ export default function SettingsPage() {
                     </div>
 
                     {/* Sliders Card */}
-                    <div className="p-5 sm:p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl transition-all hover:border-white/20">
+                    {/* ✅ ADDED CLASS: brand-tone */}
+                    <div className="brand-tone p-5 sm:p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl transition-all hover:border-white/20">
                         <div className="flex items-center gap-2 mb-8">
                             <Sliders className="w-5 h-5 text-pink-500" />
                             <h2 className="text-lg font-semibold tracking-tight text-white">Brand Tuner</h2>
@@ -228,10 +227,11 @@ export default function SettingsPage() {
                             <RotateCcw className="w-4 h-4" />
                             Reset
                         </button>
+                        {/* ✅ ADDED CLASS: save-brand-btn */}
                         <button
                             onClick={performSave}
                             disabled={isSaving || !brandName}
-                            className="flex-[2] flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 shadow-lg shadow-orange-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 disabled:shadow-none"
+                            className="save-brand-btn flex-[2] flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-orange-500 to-pink-600 hover:from-orange-600 hover:to-pink-700 shadow-lg shadow-orange-500/20 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 disabled:shadow-none"
                         >
                             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                             {isSaving ? 'Saving...' : 'Save Changes'}

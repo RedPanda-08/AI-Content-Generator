@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { createBrowserClient } from '@supabase/ssr'; 
 import SocialPostPreview from '../../components/SocialPostPreview'; 
+// ✅ Added Onboarding Import
+import OnboardingTour from '../../components/OnboardingTour';
 
 // --- TYPES ---
 type Platform = 'linkedin' | 'twitter' | 'instagram';
@@ -273,6 +275,9 @@ export default function GeneratorPage() {
         .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
       `}</style>
 
+      {/* ✅ Added Joyride Component */}
+      <OnboardingTour />
+
       {/* --- ✅ MOBILE PREVIEW DRAWER (UPDATED) --- */}
       <AnimatePresence>
         {showMobilePreview && (
@@ -293,40 +298,40 @@ export default function GeneratorPage() {
               
               {/* ✅ CONTENT AREA: Padded at top to avoid hamburger */}
               <div className="flex-1 overflow-hidden bg-[#09090b] relative flex flex-col items-center justify-start pt-6 p-4 h-full">
-                     
+                      
                  {/* 1. Header Row: Back Button & Toggles together */}
                  <div className="w-full max-w-md flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 shrink-0 z-20">
-                     
-                     <button 
-                        onClick={() => setShowMobilePreview(false)}
-                        className="flex items-center gap-2 px-3 py-2 bg-zinc-900/80 hover:bg-zinc-800 rounded-full text-zinc-300 hover:text-white transition-all cursor-pointer border border-white/5 self-start sm:self-auto"
-                     >
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        <span className="text-sm font-medium">Back to Editor</span>
-                     </button>
+                      
+                      <button 
+                         onClick={() => setShowMobilePreview(false)}
+                         className="flex items-center gap-2 px-3 py-2 bg-zinc-900/80 hover:bg-zinc-800 rounded-full text-zinc-300 hover:text-white transition-all cursor-pointer border border-white/5 self-start sm:self-auto"
+                      >
+                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                         <span className="text-sm font-medium">Back to Editor</span>
+                      </button>
 
-                     {/* Platform Toggles - Full Names */}
-                     <div className="flex gap-1.5 bg-zinc-900/50 p-1 rounded-xl border border-white/10 backdrop-blur-md">
-                        {platforms.map(p => (
-                            <button 
-                                key={p} 
-                                onClick={() => setPreviewPlatform(p)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer ${previewPlatform === p ? 'bg-white text-black shadow-lg' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'}`}
-                            >
-                                {getPlatformIcon(p)}
-                                {/* ✅ Always visible name */}
-                                <span className="capitalize">{p}</span>
-                            </button>
-                        ))}
-                     </div>
+                      {/* Platform Toggles - Full Names */}
+                      <div className="flex gap-1.5 bg-zinc-900/50 p-1 rounded-xl border border-white/10 backdrop-blur-md">
+                         {platforms.map(p => (
+                             <button 
+                                 key={p} 
+                                 onClick={() => setPreviewPlatform(p)}
+                                 className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer ${previewPlatform === p ? 'bg-white text-black shadow-lg' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'}`}
+                             >
+                                 {getPlatformIcon(p)}
+                                 {/* ✅ Always visible name */}
+                                 <span className="capitalize">{p}</span>
+                             </button>
+                         ))}
+                      </div>
                  </div>
 
                  {/* 3. Phone Frame (Centered, Scaled down on mobile to fit) */}
-                 {/* ✅ Added mt-8 here */}
                  <div className="flex-1 w-full flex items-center justify-center overflow-hidden pb-4">
-                     <div className="transform scale-[0.75] sm:scale-100 transition-transform origin-center shadow-2xl ring-1 ring-white/5 rounded-[3rem] mt-8">
-                        <SocialPostPreview content={generatedContent} platform={previewPlatform} />
-                     </div>
+                     {/* ✅ Added Joyride Class: mobile-preview-container */}
+                      <div className="mobile-preview-container transform scale-[0.75] sm:scale-100 transition-transform origin-center shadow-2xl ring-1 ring-white/5 rounded-[3rem] mt-8">
+                         <SocialPostPreview content={generatedContent} platform={previewPlatform} />
+                      </div>
                  </div>
 
               </div>
@@ -339,7 +344,7 @@ export default function GeneratorPage() {
       {/* --- SUCCESS TOAST --- */}
       <AnimatePresence>
         {scheduleSuccess && (
-             <motion.div 
+              <motion.div 
                 initial={{ opacity: 0, y: -20 }} 
                 animate={{ opacity: 1, y: 0 }} 
                 exit={{ opacity: 0, y: -20 }}
@@ -479,10 +484,10 @@ export default function GeneratorPage() {
                     </motion.div>
 
                     <div className={`flex flex-wrap justify-end gap-2 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-white/10 transition-opacity duration-500 ${isTypingComplete ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                        {/* ✅ PREVIEW BUTTON */}
+                        {/* ✅ Joyride Class Added: preview-trigger-button */}
                         <button 
                             onClick={() => setShowMobilePreview(true)}
-                            className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
+                            className="preview-trigger-button flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
                         >
                             <Smartphone size={12} className="sm:w-3.5 sm:h-3.5" /> Preview
                         </button>
@@ -493,8 +498,8 @@ export default function GeneratorPage() {
                         </button>
                         
                         <div className="relative z-50" ref={scheduleContainerRef}>
-                            {/* ✅ FIXED: Button stays visible, only modal opens on top */}
-                            <button onClick={() => setShowDatePicker(!showDatePicker)} className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer ${showDatePicker ? 'bg-white/20 text-white' : ''}`}>
+                            {/* ✅ Joyride Class Added: schedule-button */}
+                            <button onClick={() => setShowDatePicker(!showDatePicker)} className={`schedule-button flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer ${showDatePicker ? 'bg-white/20 text-white' : ''}`}>
                                 <CalendarIcon size={12} className="sm:w-3.5 sm:h-3.5" />
                                 Schedule
                             </button>
@@ -515,7 +520,8 @@ export default function GeneratorPage() {
                             </AnimatePresence>
                         </div>
 
-                        <button onClick={handleAnalyze} disabled={isAnalyzing} className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 rounded-lg transition-colors disabled:opacity-50 cursor-pointer">
+                        {/* ✅ Joyride Class Added: analyze-button */}
+                        <button onClick={handleAnalyze} disabled={isAnalyzing} className="analyze-button flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 rounded-lg transition-colors disabled:opacity-50 cursor-pointer">
                             {isAnalyzing ? <Loader2 size={12} className="sm:w-3.5 sm:h-3.5 animate-spin" /> : <BarChart2 size={12} className="sm:w-3.5 sm:h-3.5" />}
                             Analyze
                         </button>
@@ -559,15 +565,18 @@ export default function GeneratorPage() {
             <span className="text-[10px] sm:text-xs text-gray-500 font-medium">Target Platform:</span>
             <div className="flex gap-1 flex-wrap">
                 {platforms.map((p) => (
-                    <button key={p} onClick={() => setPlatform(p)} className={`px-2 sm:px-2.5 md:px-3 py-1 rounded-full text-[10px] sm:text-xs flex items-center gap-1 transition-all whitespace-nowrap cursor-pointer ${platform === p ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-transparent text-gray-400 hover:bg-white/5 hover:text-gray-300'}`}>
+                    // ✅ Joyride Class Added: platform-selector
+                    <button key={p} onClick={() => setPlatform(p)} className={`platform-selector px-2 sm:px-2.5 md:px-3 py-1 rounded-full text-[10px] sm:text-xs flex items-center gap-1 transition-all whitespace-nowrap cursor-pointer ${platform === p ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-transparent text-gray-400 hover:bg-white/5 hover:text-gray-300'}`}>
                         {getPlatformIcon(p)}
                         <span>{p.charAt(0).toUpperCase() + p.slice(1)}</span>
                     </button>
                 ))}
             </div>
           </div>
-          <Textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder={`Write a ${platform} post about...`} className="w-full bg-transparent text-gray-200 placeholder-gray-500 rounded-b-xl sm:rounded-b-2xl py-3 sm:py-4 pl-3 sm:pl-4 md:pl-6 pr-12 sm:pr-14 md:pr-16 resize-none outline-none text-sm sm:text-base font-['Inter',sans-serif]" minRows={1} maxRows={6} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGenerate(); } }} />
-          <button onClick={handleGenerate} disabled={!prompt.trim() || isGenerating} className="absolute right-2 sm:right-3 bottom-2 sm:bottom-3 p-2 sm:p-2.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg sm:rounded-xl transition-all shadow-lg hover:scale-105 active:scale-95 disabled:scale-100 disabled:opacity-50 cursor-pointer"><Send className="w-4 h-4 sm:w-5 sm:h-5 text-white" /></button>
+          {/* ✅ Added Joyride Class: prompt-input-area */}
+          <Textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder={`Write a ${platform} post about...`} className="prompt-input-area w-full bg-transparent text-gray-200 placeholder-gray-500 rounded-b-xl sm:rounded-b-2xl py-3 sm:py-4 pl-3 sm:pl-4 md:pl-6 pr-12 sm:pr-14 md:pr-16 resize-none outline-none text-sm sm:text-base font-['Inter',sans-serif]" minRows={1} maxRows={6} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGenerate(); } }} />
+          {/* ✅ Added Joyride Class: generate-button */}
+          <button onClick={handleGenerate} disabled={!prompt.trim() || isGenerating} className="generate-button absolute right-2 sm:right-3 bottom-2 sm:bottom-3 p-2 sm:p-2.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg sm:rounded-xl transition-all shadow-lg hover:scale-105 active:scale-95 disabled:scale-100 disabled:opacity-50 cursor-pointer"><Send className="w-4 h-4 sm:w-5 sm:h-5 text-white" /></button>
         </div>
         <p className="text-[10px] sm:text-xs text-gray-600 text-center mt-2 sm:mt-3 px-2">ContentAI can make mistakes. Consider checking important information.</p>
       </div>

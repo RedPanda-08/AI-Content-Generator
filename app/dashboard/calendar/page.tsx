@@ -144,7 +144,6 @@ function CalendarContent() {
       performCopy();
     } catch (err) {
       console.warn('Clipboard API failed, using fallback', err);
-      // Fallback code omitted for brevity but kept in logic
       performCopy(); 
     }
   };
@@ -367,7 +366,8 @@ function CalendarContent() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
           
           {/* CALENDAR GRID */}
-          <motion.div variants={sectionVariants} className="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-6 shadow-xl h-fit relative z-0">
+          {/* ✅ ADDED CLASS: calendar-view */}
+          <motion.div variants={sectionVariants} className="calendar-view lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-3 sm:p-6 shadow-xl h-fit relative z-0">
             <div className="grid grid-cols-7 mb-4 text-center">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                 <div key={day} className="text-[10px] sm:text-xs font-semibold text-gray-500 uppercase tracking-wider py-1">
@@ -376,7 +376,6 @@ function CalendarContent() {
               ))}
             </div>
 
-            {/* KEY PROP is crucial here: it forces Framer Motion to re-run the stagger effect when month changes */}
             <motion.div 
               key={currentDate.toString()}
               variants={gridContainerVariants}
@@ -533,12 +532,13 @@ function CalendarContent() {
                     </button>
                 </div>
 
+                {/* ✅ ADDED CLASS: new-schedule-btn */}
                 <motion.button 
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleSave}
                     disabled={!newEventTitle || isAdding || !selectedDate}
-                    className="w-full py-3 cursor-pointer bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl font-semibold text-white shadow-lg hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 transition-all"
+                    className="new-schedule-btn w-full py-3 cursor-pointer bg-gradient-to-r from-orange-500 to-pink-600 rounded-xl font-semibold text-white shadow-lg hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 transition-all"
                 >
                     {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                     Add Schedule

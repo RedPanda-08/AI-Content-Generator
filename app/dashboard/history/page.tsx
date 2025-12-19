@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client'; 
-import { Loader2, Clock, User, Sparkles, Copy, Check, Search } from 'lucide-react';
+import { Loader2, Clock, User, Sparkles, Copy, Check, Search, Download } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 type Generation = {
@@ -11,36 +11,22 @@ type Generation = {
   content: string;
 };
 
-// 1. Container: Controls the initial "Waterfall" load
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1
-    }
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 }
   }
 };
 
-// 2. Items: Refined for smoother filtering
 const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20, scale: 0.95 },
   visible: { 
-    opacity: 1, 
-    y: 0, 
-    scale: 1,
-    transition: {
-      type: "spring", // Use spring for entrance too
-      stiffness: 300,
-      damping: 24
-    }
+    opacity: 1, y: 0, scale: 1,
+    transition: { type: "spring", stiffness: 300, damping: 24 }
   },
-  // Exit needs to be fast and absolute so layout closes the gap quickly
   exit: {
-    opacity: 0,
-    scale: 0.9,
-    transition: { duration: 0.2 } 
+    opacity: 0, scale: 0.9, transition: { duration: 0.2 } 
   }
 };
 
@@ -78,6 +64,35 @@ export default function HistoryPage() {
     });
   };
 
+  // ✅ NEW: FUNCTION TO HANDLE REAL CSV EXPORT
+  const handleExport = () => {
+    if (generations.length === 0) return;
+
+    // 1. Define CSV Headers
+    const headers = ['Date', 'Prompt', 'Content'];
+    
+    // 2. Convert Data to CSV Format
+    const csvContent = generations.map(gen => {
+      const date = new Date(gen.created_at).toLocaleDateString();
+      // Escape quotes and wrap in quotes to handle commas/newlines in text
+      const safePrompt = `"${gen.prompt.replace(/"/g, '""')}"`;
+      const safeContent = `"${gen.content.replace(/"/g, '""')}"`;
+      return `${date},${safePrompt},${safeContent}`;
+    }).join('\n');
+
+    const csvData = `${headers.join(',')}\n${csvContent}`;
+
+    // 3. Create a Blob and trigger download
+    const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `content-history-${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filteredGenerations = generations.filter(gen => 
     gen.prompt.toLowerCase().includes(searchQuery.toLowerCase()) ||
     gen.content.toLowerCase().includes(searchQuery.toLowerCase())
@@ -86,11 +101,7 @@ export default function HistoryPage() {
   if (loading) {
     return (
       <div className="w-full h-full flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
         </motion.div>
       </div>
@@ -110,15 +121,15 @@ export default function HistoryPage() {
           <p className="text-sm sm:text-base text-gray-400">View and manage your previously generated content</p>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar & Export Area */}
         {generations.length > 0 && (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="mb-4 sm:mb-6"
+            className="mb-4 sm:mb-6 flex gap-3"
           >
-            <div className="relative">
+            <div className="relative history-search flex-1">
               <Search className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
               <input
                 type="text"
@@ -128,6 +139,16 @@ export default function HistoryPage() {
                 className="w-full bg-white/5 border-2 border-white/10 rounded-xl pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 text-sm sm:text-base text-white placeholder-gray-500 focus:border-orange-500/50 focus:bg-white/10 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all"
               />
             </div>
+
+            {/* ✅ UPDATED EXPORT BUTTON WITH ONCLICK */}
+            <button 
+              onClick={handleExport} // 👈 Added this
+              className="history-export flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 text-gray-300 hover:text-white rounded-xl text-sm font-medium transition-all"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Export</span>
+            </button>
+
           </motion.div>
         )}
 
@@ -167,17 +188,14 @@ export default function HistoryPage() {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-4"
+            className="space-y-4 history-list" 
           >
-            {/* Stats */}
             <div className="flex items-center justify-between mb-3 sm:mb-4">
               <p className="text-xs sm:text-sm text-gray-400">
                 Showing {filteredGenerations.length} of {generations.length} {generations.length === 1 ? 'result' : 'results'}
               </p>
             </div>
 
-            {/* History Items */}
-            {/* mode="popLayout" allows exiting items to float over the list while others slide up */}
             <AnimatePresence mode="popLayout">
               {filteredGenerations.map((gen) => (
                 <motion.div 
@@ -186,25 +204,19 @@ export default function HistoryPage() {
                   initial="hidden"
                   animate="visible"
                   exit="exit"
-                  // 3. THE MAGIC SAUCE: Layout with Spring Physics
                   layout
                   transition={{
-                    layout: { type: "spring", stiffness: 300, damping: 30 }, // Controls the sliding movement
+                    layout: { type: "spring", stiffness: 300, damping: 30 },
                     opacity: { duration: 0.2 }
                   }}
                   whileHover={{ scale: 1.005, backgroundColor: "rgba(255, 255, 255, 0.07)" }}
                   className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-6 transition-colors"
                 >
-                  {/* Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4 pb-4 border-b border-white/10">
                     <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-400">
                       <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
                       <span className="truncate">{new Date(gen.created_at).toLocaleDateString('en-US', { 
-                        month: 'short', 
-                        day: 'numeric', 
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
+                        month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
                       })}</span>
                     </div>
                     <motion.button
@@ -226,7 +238,6 @@ export default function HistoryPage() {
                     </motion.button>
                   </div>
 
-                  {/* Prompt */}
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
@@ -239,7 +250,6 @@ export default function HistoryPage() {
                     </div>
                   </div>
 
-                  {/* Content */}
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-gradient-to-br from-orange-500 to-pink-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-orange-500/30">

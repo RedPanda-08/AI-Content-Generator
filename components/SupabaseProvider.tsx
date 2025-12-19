@@ -1,20 +1,36 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+// ✅ Import 'ReactNode' directly to avoid namespace issues
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
+import type { SupabaseClient, Session } from '@supabase/supabase-js';
 
-const SupabaseContext = createContext(null);
+// 1. Define the shape of your Context
+interface SupabaseContextType {
+  supabase: SupabaseClient;
+  session: Session | null;
+  initialized: boolean;
+  createGuestAccount: () => Promise<void>;
+}
 
-export function SupabaseProvider({ children }) {
-  const [supabase] = useState(() => createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ));
+// 2. Create Context with explicit type
+const SupabaseContext = createContext<SupabaseContextType | undefined>(undefined);
+
+// 3. Provider Component
+export function SupabaseProvider({ children }: { children: ReactNode }) {
   
-  const [session, setSession] = useState(null);
+  // Initialize Supabase client
+  const [supabase] = useState(() => 
+    createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  );
+  
+  const [session, setSession] = useState<Session | null>(null);
   const [initialized, setInitialized] = useState(false);
 
-  // 2. Define Guest Creation Logic
+  // Guest Logic
   const createGuestAccount = async () => {
     try {
       console.log("Creating guest account...");
@@ -41,10 +57,12 @@ export function SupabaseProvider({ children }) {
       setSession(data.session);
       setInitialized(true);
 
-      // Listen for auth changes (Login, Logout, etc.)
+      // Listen for auth changes
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         setSession(session);
-        if (event === 'SIGNED_IN') setInitialized(true);
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          setInitialized(true);
+        }
       });
 
       return () => subscription.unsubscribe();
@@ -67,6 +85,11 @@ export function SupabaseProvider({ children }) {
   );
 }
 
+// 4. Custom Hook with safety check
 export const useSupabase = () => {
-  return useContext(SupabaseContext);
+  const context = useContext(SupabaseContext);
+  if (context === undefined) {
+    throw new Error('useSupabase must be used inside a SupabaseProvider');
+  }
+  return context;
 };
