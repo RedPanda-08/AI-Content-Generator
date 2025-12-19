@@ -1,14 +1,13 @@
 'use client';
 import { useState, useEffect, useRef } from 'react'; 
-import { Send, Bot, Sparkles, User, Copy, Check, CheckCircle2, BarChart2, Loader2, Linkedin, Twitter, Instagram, X, Calendar as CalendarIcon, Clock, AlertTriangle, Smartphone, Eye, Edit3, ArrowLeft } from 'lucide-react'; 
+import { Send, Sparkles, User, Copy, Check, CheckCircle2, BarChart2, Loader2, Linkedin, Twitter, Instagram, X, Calendar as CalendarIcon, Clock, AlertTriangle, Smartphone, ArrowLeft } from 'lucide-react'; 
 import Textarea from 'react-textarea-autosize'; 
 import { useSupabase } from '../../components/SupabaseProvider'; 
 import Link from 'next/link'; 
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { createBrowserClient } from '@supabase/ssr'; 
 import SocialPostPreview from '../../components/SocialPostPreview'; 
-// ✅ Added Onboarding Import
-import OnboardingTour from '../../components/OnboardingTour';
+import Logo from '../../components/Logo';
 
 // --- TYPES ---
 type Platform = 'linkedin' | 'twitter' | 'instagram';
@@ -263,7 +262,7 @@ export default function GeneratorPage() {
       if (p === 'linkedin') return <Linkedin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" />;
       if (p === 'twitter') return <Twitter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400" />;
       if (p === 'instagram') return <Instagram className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-400" />;
-      return <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />;
+      return <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />;
   };
 
   return (
@@ -275,65 +274,52 @@ export default function GeneratorPage() {
         .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
       `}</style>
 
-      {/* ✅ Added Joyride Component */}
-      <OnboardingTour />
+      {/* --- ✅ REMOVED TOP-LEFT LOGO BLOCK FROM HERE --- */}
 
-      {/* --- ✅ MOBILE PREVIEW DRAWER (UPDATED) --- */}
+      {/* --- MOBILE PREVIEW DRAWER --- */}
       <AnimatePresence>
         {showMobilePreview && (
           <>
-            {/* Backdrop */}
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[90]"
               onClick={() => setShowMobilePreview(false)}
             />
-            {/* Drawer - H-[100dvh] for full mobile height */}
             <motion.div 
               initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="fixed right-0 top-0 bottom-0 w-full sm:w-[500px] bg-[#09090b] border-l border-white/10 z-[100] shadow-2xl flex flex-col h-[100dvh]"
               onClick={(e) => e.stopPropagation()}
             >
-              
-              {/* ✅ CONTENT AREA: Padded at top to avoid hamburger */}
               <div className="flex-1 overflow-hidden bg-[#09090b] relative flex flex-col items-center justify-start pt-6 p-4 h-full">
-                      
-                 {/* 1. Header Row: Back Button & Toggles together */}
-                 <div className="w-full max-w-md flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 shrink-0 z-20">
-                      
+                  <div className="w-full max-w-md flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 shrink-0 z-20">
                       <button 
-                         onClick={() => setShowMobilePreview(false)}
-                         className="flex items-center gap-2 px-3 py-2 bg-zinc-900/80 hover:bg-zinc-800 rounded-full text-zinc-300 hover:text-white transition-all cursor-pointer border border-white/5 self-start sm:self-auto"
+                          onClick={() => setShowMobilePreview(false)}
+                          className="flex items-center gap-2 px-3 py-2 bg-zinc-900/80 hover:bg-zinc-800 rounded-full text-zinc-300 hover:text-white transition-all cursor-pointer border border-white/5 self-start sm:self-auto"
                       >
-                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                         <span className="text-sm font-medium">Back to Editor</span>
+                          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                          <span className="text-sm font-medium">Back to Editor</span>
                       </button>
 
-                      {/* Platform Toggles - Full Names */}
                       <div className="flex gap-1.5 bg-zinc-900/50 p-1 rounded-xl border border-white/10 backdrop-blur-md">
-                         {platforms.map(p => (
+                          {platforms.map(p => (
                              <button 
                                  key={p} 
                                  onClick={() => setPreviewPlatform(p)}
                                  className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer ${previewPlatform === p ? 'bg-white text-black shadow-lg' : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'}`}
                              >
                                  {getPlatformIcon(p)}
-                                 {/* ✅ Always visible name */}
                                  <span className="capitalize">{p}</span>
                              </button>
-                         ))}
+                          ))}
                       </div>
-                 </div>
+                  </div>
 
-                 {/* 3. Phone Frame (Centered, Scaled down on mobile to fit) */}
-                 <div className="flex-1 w-full flex items-center justify-center overflow-hidden pb-4">
-                     {/* ✅ Added Joyride Class: mobile-preview-container */}
-                      <div className="mobile-preview-container transform scale-[0.75] sm:scale-100 transition-transform origin-center shadow-2xl ring-1 ring-white/5 rounded-[3rem] mt-8">
-                         <SocialPostPreview content={generatedContent} platform={previewPlatform} />
-                      </div>
-                 </div>
-
+                  <div className="flex-1 w-full flex items-center justify-center overflow-hidden pb-4">
+                       <div className="mobile-preview-container transform scale-[0.75] sm:scale-100 transition-transform origin-center shadow-2xl ring-1 ring-white/5 rounded-[3rem] mt-8">
+                          <SocialPostPreview content={generatedContent} platform={previewPlatform} />
+                       </div>
+                  </div>
               </div>
             </motion.div>
           </>
@@ -362,7 +348,6 @@ export default function GeneratorPage() {
       <AnimatePresence>
         {showDatePicker && (
             <>
-                {/* Mobile overlay with high z-index */}
                 <div className="fixed inset-0 z-[100] flex md:hidden items-center justify-center p-4">
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setShowDatePicker(false)} />
                      <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} onClick={(e) => e.stopPropagation()} className="bg-[#121212] border border-white/10 p-6 rounded-3xl shadow-2xl w-full max-w-xs relative overflow-hidden z-10">
@@ -384,7 +369,6 @@ export default function GeneratorPage() {
                         </button>
                     </motion.div>
                 </div>
-                {/* Desktop overlay */}
                 <div className="hidden md:block fixed inset-0 z-40 bg-transparent" onClick={() => setShowDatePicker(false)} />
             </>
         )}
@@ -410,22 +394,27 @@ export default function GeneratorPage() {
 
       {/* --- DASHBOARD CONTENT --- */}
       <div className={`flex-1 pr-1 sm:pr-2 pb-2 transition-all duration-300 ${!submittedPrompt ? 'flex flex-col items-center justify-center overflow-hidden' : 'overflow-y-auto no-scrollbar'}`}>
-         
-         <div className={`${!submittedPrompt ? 'w-full' : 'pb-32 sm:pb-24 min-h-full'}`}>
+          
+          <div className={`${!submittedPrompt ? 'w-full' : 'pb-32 sm:pb-24 min-h-full'}`}>
         
         {!submittedPrompt ? (
             <div className={`text-center px-2 ${showCreditModal ? 'py-4' : 'py-0'}`}>
-              <div className="relative inline-block mb-4 sm:mb-6 group">
-                <div className="absolute inset-0 bg-orange-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 rounded-full" />
-                <motion.div className="relative inline-flex p-4 sm:p-6 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl sm:rounded-3xl shadow-lg shadow-orange-500/30 z-10">
-                    <Bot size={40} className="sm:w-12 sm:h-12 text-white" />
-                </motion.div>
+              
+              
+              <div className="flex justify-center mb-6 sm:mb-8">
+                  <Logo className="h-16 w-auto sm:h-20 md:h-24" color="white" />
               </div>
 
-             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent mb-2 sm:mb-3 px-2">How can I help you today?</h1>
-             <p className="text-gray-500 mb-8 sm:mb-12 text-sm sm:text-base">Choose a prompt below or type your own</p>
-             
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-8 sm:mt-10 md:mt-12 w-full mx-auto">
+              
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2 sm:mb-3 px-2">
+                How can I help you{' '}
+                <span className="bg-gradient-to-r from-orange-400 to-pink-600 bg-clip-text text-transparent">
+                  today?
+                </span>
+              </h1>
+              <p className="text-gray-500 mb-8 sm:mb-12 text-sm sm:text-base">Choose a prompt below or type your own</p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-8 sm:mt-10 md:mt-12 w-full mx-auto">
                 <div onClick={() => handleCardClick('Write a witty tweet about the struggles of debugging code', 'twitter')} className="p-4 sm:p-6 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-orange-500/50 rounded-xl sm:rounded-2xl transition-all cursor-pointer text-left">
                   <h3 className="font-semibold text-gray-200 mb-1.5 sm:mb-2 flex items-center gap-2 text-sm sm:text-base"><Twitter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-sky-400"/> Witty Tweet</h3>
                   <p className="text-xs sm:text-sm text-gray-500">Create a humorous tweet about debugging struggles</p>
@@ -434,8 +423,8 @@ export default function GeneratorPage() {
                   <h3 className="font-semibold text-gray-200 mb-1.5 sm:mb-2 flex items-center gap-2 text-sm sm:text-base"><Instagram className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-400"/> Instagram Caption</h3>
                   <p className="text-xs sm:text-sm text-gray-500">Craft an engaging caption for a sunset photo</p>
                 </div>
-             </div>
-           </div>
+              </div>
+            </div>
         ) : (
           <div className={`space-y-6 sm:space-y-8 pb-4 ${showCreditModal ? 'pt-2' : 'pt-4 sm:pt-0'}`}>
             <div className="flex gap-2.5 sm:gap-3 md:gap-4 items-start">
@@ -484,7 +473,6 @@ export default function GeneratorPage() {
                     </motion.div>
 
                     <div className={`flex flex-wrap justify-end gap-2 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-white/10 transition-opacity duration-500 ${isTypingComplete ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                        {/* ✅ Joyride Class Added: preview-trigger-button */}
                         <button 
                             onClick={() => setShowMobilePreview(true)}
                             className="preview-trigger-button flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
@@ -498,7 +486,6 @@ export default function GeneratorPage() {
                         </button>
                         
                         <div className="relative z-50" ref={scheduleContainerRef}>
-                            {/* ✅ Joyride Class Added: schedule-button */}
                             <button onClick={() => setShowDatePicker(!showDatePicker)} className={`schedule-button flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-colors cursor-pointer ${showDatePicker ? 'bg-white/20 text-white' : ''}`}>
                                 <CalendarIcon size={12} className="sm:w-3.5 sm:h-3.5" />
                                 Schedule
@@ -520,7 +507,6 @@ export default function GeneratorPage() {
                             </AnimatePresence>
                         </div>
 
-                        {/* ✅ Joyride Class Added: analyze-button */}
                         <button onClick={handleAnalyze} disabled={isAnalyzing} className="analyze-button flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 rounded-lg transition-colors disabled:opacity-50 cursor-pointer">
                             {isAnalyzing ? <Loader2 size={12} className="sm:w-3.5 sm:h-3.5 animate-spin" /> : <BarChart2 size={12} className="sm:w-3.5 sm:h-3.5" />}
                             Analyze
@@ -565,7 +551,6 @@ export default function GeneratorPage() {
             <span className="text-[10px] sm:text-xs text-gray-500 font-medium">Target Platform:</span>
             <div className="flex gap-1 flex-wrap">
                 {platforms.map((p) => (
-                    // ✅ Joyride Class Added: platform-selector
                     <button key={p} onClick={() => setPlatform(p)} className={`platform-selector px-2 sm:px-2.5 md:px-3 py-1 rounded-full text-[10px] sm:text-xs flex items-center gap-1 transition-all whitespace-nowrap cursor-pointer ${platform === p ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-transparent text-gray-400 hover:bg-white/5 hover:text-gray-300'}`}>
                         {getPlatformIcon(p)}
                         <span>{p.charAt(0).toUpperCase() + p.slice(1)}</span>
@@ -573,9 +558,7 @@ export default function GeneratorPage() {
                 ))}
             </div>
           </div>
-          {/* ✅ Added Joyride Class: prompt-input-area */}
           <Textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder={`Write a ${platform} post about...`} className="prompt-input-area w-full bg-transparent text-gray-200 placeholder-gray-500 rounded-b-xl sm:rounded-b-2xl py-3 sm:py-4 pl-3 sm:pl-4 md:pl-6 pr-12 sm:pr-14 md:pr-16 resize-none outline-none text-sm sm:text-base font-['Inter',sans-serif]" minRows={1} maxRows={6} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleGenerate(); } }} />
-          {/* ✅ Added Joyride Class: generate-button */}
           <button onClick={handleGenerate} disabled={!prompt.trim() || isGenerating} className="generate-button absolute right-2 sm:right-3 bottom-2 sm:bottom-3 p-2 sm:p-2.5 bg-gradient-to-r from-orange-500 to-pink-600 rounded-lg sm:rounded-xl transition-all shadow-lg hover:scale-105 active:scale-95 disabled:scale-100 disabled:opacity-50 cursor-pointer"><Send className="w-4 h-4 sm:w-5 sm:h-5 text-white" /></button>
         </div>
         <p className="text-[10px] sm:text-xs text-gray-600 text-center mt-2 sm:mt-3 px-2">ContentAI can make mistakes. Consider checking important information.</p>

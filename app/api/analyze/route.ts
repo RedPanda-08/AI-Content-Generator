@@ -26,31 +26,47 @@ export async function POST(req: Request) {
     );
   }
 
-
   try {
     const { brand_name, brand_tone, brand_keywords } = user.user_metadata ?? {};
 
-    // This prompt instructs the AI to act as a content strategist.
-    const systemPrompt = `You are an expert content strategist for the brand named "${
-      brand_name || 'our brand'
-    }". Your goal is to provide actionable feedback on the user's provided text.
-The feedback should help them align the content with their brand's tone, which is: "${
-      brand_tone || 'neutral'
-    }".
-Suggest how they could better incorporate their keywords: "${
-      brand_keywords || 'none'
-    }".
-Structure your response in clear, concise markdown bullet points. Focus on suggesting improvements for Readability, Engagement, and SEO.`;
+    // --- THE "SIMPLE & DIRECT" SYSTEM PROMPT ---
+    const systemPrompt = `
+    You are a helpful writing coach. Your job is to make the user's post better using VERY SIMPLE language.
 
-   
+    BRAND CONTEXT:
+    - Brand Name: ${brand_name || 'The Brand'} 
+    - Goal Tone: ${brand_tone || 'Bold'}
+    - Keywords: ${brand_keywords || 'None'}
+
+    RULES:
+    1. **Keep it Short:** Use bullet points only. No long paragraphs.
+    2. **Simple Words:** Write as if explaining to a friend. No complex jargon.
+    3. **Be Specific:** Quote the bad part, then show the fixed part.
+
+    OUTPUT FORMAT (Markdown):
+
+    ### 👋 The Hook (First Sentence)
+    - **Current:** "[Quote their hook]"
+    - **Rating:** [Good / Bad]
+    - **Why:** [1 short sentence explaining why]
+    - **Try This:** "[A better, punchier version]"
+
+    ### 🛠️ Quick Fixes
+    - **"[Quote weak phrase]"** → Change to **"[Better word]"**.
+    - **"[Quote boring part]"** → Rewrite as **"[Fun version]"**.
+
+    ### 💡 Missing?
+    - You forgot to include: [Call to Action / Question / Personal Story]. Add it at the end.
+    `;
+
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Please analyze this content: "${contentToAnalyze}"` },
+        { role: 'user', content: `Critique this draft: "${contentToAnalyze}"` },
       ],
-      temperature: 0.5, 
-      max_tokens: 400,
+      temperature: 0.6, 
+      max_tokens: 400, // Reduced tokens to force brevity
     });
 
     const aiAnalysis = response.choices[0].message.content;

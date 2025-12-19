@@ -3,7 +3,6 @@ import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// 1. Define Types
 interface BrandMetadata {
   brand_name?: string;
   brand_tone?: string;
@@ -23,12 +22,10 @@ interface GenerationRecord {
 
 export async function POST(request: NextRequest) {
   try {
-    // 2. Initialize OpenAI
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    // 3. Initialize Supabase (Cookie-Aware)
     const cookieStore = await cookies();
     
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
@@ -49,21 +46,18 @@ export async function POST(request: NextRequest) {
                 cookieStore.set(name, value, options)
               );
             } catch {
-              // API routes are read-only for cookies
             }
           },
         },
       }
     );
 
-    // 4. Validate User
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized: Please refresh the page.' }, { status: 401 });
     }
 
-    // 5. Check Credits
     const { data: creditData, error: creditError } = await supabase
       .from('credits')
       .select('count')
@@ -83,7 +77,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 6. Get User Prompt AND Platform
     const body = await request.json();
     const { prompt, platform = 'linkedin' } = body; 
 
@@ -91,55 +84,70 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No prompt provided.' }, { status: 400 });
     }
 
-    // 7. Prepare Smart System Prompt (IMPROVED)
     const { brand_name, brand_tone, brand_keywords } = (user.user_metadata ?? {}) as BrandMetadata;
 
     let platformRules = "";
     switch (platform.toLowerCase()) {
         case 'twitter':
-            platformRules = "Format: A single, high-impact tweet or a short thread (2 tweets max). Focus on a contrarian idea or a sharp insight. Max 1-2 hashtags.";
+            platformRules = `
+            PLATFORM: TWITTER (X)
+            - Format: A "hook" tweet followed by a short thread (if needed) or a single punchy statement.
+            - Vibe: Contrarian, witty, fast-paced.
+            - Rules: No hashtags in the middle of sentences. Max 1-2 hashtags at the end.
+            `;
             break;
         case 'instagram':
-            platformRules = "Format: A rich, storytelling caption. Start with a hook that stops the scroll. Focus on the visual description or the 'feeling' behind the topic. Max 3 hashtags.";
+            platformRules = `
+            PLATFORM: INSTAGRAM
+            - Format: A caption for a visual post.
+            - Vibe: Storytelling, emotional, aesthetic.
+            - Rules: Start with a "Stop the scroll" hook. The middle should tell a mini-story.
+            - Hashtags: Include 5-10 relevant niche tags at the very bottom.
+            `;
             break;
         case 'linkedin':
         default:
-            platformRules = "Format: A thought-leadership post. Start with a counter-intuitive statement. Use short, punchy paragraphs. Focus on business lessons or personal growth. Max 3 hashtags.";
+            platformRules = `
+            PLATFORM: LINKEDIN
+            - Format: A professional thought leadership post.
+            - Structure: 
+              1. Hook (1-2 lines maximum).
+              2. Body (Group sentences into small paragraphs of 2-3 lines. DO NOT separate every single sentence with a newline).
+              3. Conclusion/Takeaway.
+            - Max 3 hashtags.
+            `;
             break;
     }
 
-    // --- THE "WOW FACTOR" SYSTEM PROMPT ---
+    // --- THE UPDATED SYSTEM PROMPT ---
     const systemPrompt = `
-    You are an elite, award-winning Ghostwriter known for "stopping the scroll." You write for top CEOs and creative visionaries.
-    You DO NOT write like a robot. You write like a human who thinks differently.
+    You are an elite Ghostwriter. You write human-sounding content, not "AI slop."
 
-    BRAND CONTEXT:
+    BRAND IDENTITY:
+    - Name: ${brand_name || "The Author"}
     - Voice: ${brand_tone || "Bold, Insightful, and Authentic"}
-    - Focus: ${brand_keywords || "Growth, Innovation, Leadership"}
+    - Keywords: ${brand_keywords || "Growth, Innovation, Leadership"}
 
-    YOUR MISSION:
-    Write a **${platform.toUpperCase()}** post about the user's topic.
+    STRICT FORMATTING RULES (CRITICAL):
+    1. **NO DOUBLE SPACING:** Do not put a blank line between every single sentence. Group related sentences into paragraphs.
+    2. **NO POETRY MODE:** Write like a normal human speaks. Only use line breaks when shifting topics or for dramatic emphasis on the Hook.
+    3. **BANNED WORDS:** Never use: "Unleash", "Unlock", "Delve", "Tapestry", "Game-changer", "In today's fast-paced world".
+    4. **THE "PAIN POINT" STRATEGY:** Identify the user's underlying pain point, validate it, and offer a specific solution.
 
-    STRICT WRITING RULES:
-    1. **NO CLICHÉS:** Banned words: "Unleash", "Unlock", "Delve", "Tapestry", "Game-changer", "In today's fast-paced world".
-    2. **THE "WOW" FACTOR:** Find a unique angle. Don't just describe the topic; explain *why it matters* in a way nobody else has. Use metaphors. Be provocative.
-    3. **HOOK FIRST:** The first sentence must be impossible to ignore.
-    4. **LESS IS MORE:** Use 2-3 powerful hashtags max. The value is in the text, not the tags.
-    5. **FORMATTING:** Use **bold** for emphasis. Use line breaks for readability. 
-    6. **PLATFORM NATIVE:** ${platformRules}
+    ${platformRules}
 
-    User Request: ${prompt}
+    YOUR GOAL:
+    Write a specific, high-value post based on the user's idea. Keep the formatting tight and professional.
     `;
 
-    // 8. Call OpenAI
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o', 
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: prompt },
+        { role: 'user', content: `Here is my rough idea: "${prompt}". Write a post about this.` },
       ],
-      temperature: 0.85, // High creativity
-      max_tokens: 700,
+      temperature: 0.7, // Lowered slightly to reduce "creative" formatting
+      max_tokens: 800,
     });
 
     const aiContent = completion.choices?.[0]?.message?.content;
@@ -148,7 +156,6 @@ export async function POST(request: NextRequest) {
       throw new Error('Failed to generate content from AI.');
     }
 
-    // 9. Deduct Credit
     const { error: updateError } = await supabase
       .from('credits')
       .update({ count: creditData.count - 1 })
@@ -158,14 +165,12 @@ export async function POST(request: NextRequest) {
         console.error("Error deducting credit:", updateError);
     }
 
-    // 10. Save to History
     await supabase.from('generations').insert<GenerationRecord>({
       user_id: user.id,
       prompt: `[${platform}] ${prompt}`, 
       content: aiContent,
     });
 
-    // 11. Return Result
     return NextResponse.json({ content: aiContent });
 
   } catch (error: unknown) {

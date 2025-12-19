@@ -3,10 +3,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useSupabase } from '../components/SupabaseProvider';
-import { Bot, Zap, BarChart2, Lightbulb, TrendingUp, Star, Sparkles, ArrowRight, Users, Clock, Target, Loader2, Check, X, AlertCircle, FileText, Calendar as CalendarIcon } from 'lucide-react';
+import { Zap, BarChart2, Lightbulb, TrendingUp, Star, Sparkles, ArrowRight, Users, Clock, Target, Loader2, Check, X, AlertCircle, FileText, Calendar as CalendarIcon } from 'lucide-react';
 import { motion} from 'framer-motion';
 import TestimonialSection from '../components/TestimonialSection';
 import PhonePreview from '@/components/PhonePreview';
+import Logo from '@/components/Logo'; // Your Logo Import
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -165,10 +166,8 @@ export default function HomePage() {
             transition={{ duration: 0.5 }}
             className="flex items-center gap-2 sm:gap-3"
           >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-orange-500 via-orange-600 to-pink-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-              <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-            <span className="font-bold text-lg sm:text-xl">ContentAI</span>
+            {/* UPDATED: Replaced Bot icon with your custom Logo */}
+            <Logo className="h-9 sm:h-10" />
           </motion.div>
           <motion.nav 
             initial={{ opacity: 0, y: -10 }}
@@ -262,7 +261,7 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-     {/* --- INTERACTIVE SHOWCASE --- */}
+      {/* --- INTERACTIVE SHOWCASE --- */}
 <section className="py-24 relative overflow-hidden bg-black">
   {/* Graph Background Effect - Increased visibility and added radial mask */}
   <div 
@@ -746,10 +745,8 @@ export default function HomePage() {
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-12 mb-10 sm:mb-12">
             <div className="col-span-2 sm:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-orange-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                </div>
-                <span className="font-bold text-base sm:text-lg">ContentAI</span>
+                 {/* UPDATED: Replaced Footer Bot with Logo */}
+                 <Logo className="h-8" />
               </div>
               <p className="text-gray-400 text-xs sm:text-sm font-light leading-relaxed">Transform your content creation with AI-powered tools.</p>
             </div>

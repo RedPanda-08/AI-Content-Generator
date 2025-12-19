@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  LayoutDashboard,
   Bot,
   History,
   Menu,
@@ -20,6 +19,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+// ✅ Import your custom Logo component
+import Logo from "@/components/Logo";
 
 // Renamed tabs for better UX
 const navItems = [
@@ -166,14 +167,12 @@ export default function Sidebar() {
               !isExpanded ? "w-0 opacity-0 hidden" : "w-auto opacity-100"
             }`}
           >
-            <div className="w-11 h-11 bg-gradient-to-br from-orange-500 via-orange-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
-              <LayoutDashboard className="w-5 h-5 text-white" />
-            </div>
-            <div className="whitespace-nowrap">
-              <span className="text-lg font-bold block">ContentAI</span>
-              <span className="block text-[10px] text-neutral-500 uppercase">Pro Studio</span>
+            {/* ✅ UPDATED: Removed Gradient Box & LayoutDashboard, added Logo */}
+            <div className="flex items-center">
+                <Logo className="h-9" color="white" />
             </div>
           </Link>
+          
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             className={`hidden lg:flex items-center justify-center w-9 h-9 rounded-xl 
@@ -258,7 +257,7 @@ export default function Sidebar() {
           {/* Credits Box */}
           {!loading && (
              <div className={`bg-neutral-900/50 rounded-xl border border-neutral-800/50 transition-all duration-300 ease-in-out overflow-hidden ${
-                isExpanded ? "p-4 max-h-[200px] opacity-100 mb-2" : "p-0 max-h-0 opacity-0 mb-0 border-0"
+               isExpanded ? "p-4 max-h-[200px] opacity-100 mb-2" : "p-0 max-h-0 opacity-0 mb-0 border-0"
              }`}>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-bold text-neutral-500 uppercase whitespace-nowrap">Content Tokens</span>
@@ -364,4 +363,4 @@ export default function Sidebar() {
       `}</style>
     </>
   );
-} 
+}
