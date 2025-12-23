@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react'; 
-import { User, Check, CheckCircle2, BarChart2, Loader2, Linkedin, Twitter, Instagram, X, Calendar as CalendarIcon, Clock, AlertTriangle, Smartphone, ArrowLeft, Sparkles, Copy } from 'lucide-react'; 
+import { User, Copy, Check, CheckCircle2, BarChart2, Loader2, Linkedin, Twitter, Instagram, X, Calendar as CalendarIcon, Clock, AlertTriangle, Smartphone, ArrowLeft, Sparkles } from 'lucide-react'; 
 import { useSupabase } from '../../components/SupabaseProvider'; 
 import Link from 'next/link'; 
 import { motion, AnimatePresence, Variants } from 'framer-motion';
@@ -265,9 +265,14 @@ export default function GeneratorPage() {
       return <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400" />;
   };
 
+  // Logic to allow scrolling
+  const isTypingOrSubmitted = prompt.length > 0 || submittedPrompt.length > 0;
+
   return (
-    // 1. h-[100dvh] ensures full height on mobile browsers including address bar area
-    <div className="flex flex-col h-[100dvh] overflow-hidden max-w-4xl mx-auto px-4 pt-4 relative">
+    // FIX 1: Main Container Padding.
+    // 'pt-24' (Mobile): HUGE padding to push content down below hamburger.
+    // 'sm:pt-4' (Desktop): Standard small padding.
+    <div className="flex flex-col h-[100dvh] overflow-hidden max-w-4xl mx-auto px-4 pt-24 sm:pt-4 relative">
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -392,20 +397,12 @@ export default function GeneratorPage() {
       )}
 
       {/* --- DASHBOARD CONTENT (MIDDLE SECTION) --- */}
-      {/* 2. flex-1 min-h-0: Essential for scrollable areas inside flex containers.
-          3. overflow-y-auto: Allows scroll on ALL screens by default (needed for iPhone SE safe scrolling).
-          4. sm:overflow-hidden: On larger screens, we hide scroll ONLY if it's the welcome screen (locked look).
-      */}
-      <div className={`flex-1 min-h-0 pr-1 sm:pr-2 pb-2 transition-all duration-300 overflow-y-auto no-scrollbar ${!submittedPrompt ? 'sm:overflow-hidden' : ''}`}>
+      <div className={`flex-1 min-h-0 pr-1 sm:pr-2 pb-2 transition-all duration-300 overflow-y-auto no-scrollbar ${!isTypingOrSubmitted ? 'sm:overflow-hidden' : ''}`}>
           
-          {/* 5. Mobile Layout (justify-start): Aligns content to TOP so Logo isn't cut off on small screens.
-             6. Desktop Layout (sm:justify-center): Aligns content to CENTER for aesthetics.
-             7. pb-24: Ensures user can scroll content ABOVE the keyboard/input on mobile.
-          */}
           <div className={`${
               !submittedPrompt 
-              ? 'w-full flex flex-col items-center justify-start sm:justify-center min-h-full pb-24 sm:pb-0 pt-8 sm:pt-0' 
-              : 'pb-24 sm:pb-4'
+              ? 'w-full flex flex-col items-center justify-start sm:justify-center min-h-full pb-20 sm:pb-0 pt-4 sm:pt-0' 
+              : 'pb-32 sm:pb-4'
           }`}>
         
         {!submittedPrompt ? (
