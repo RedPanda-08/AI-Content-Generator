@@ -226,7 +226,6 @@ const SmartInput: React.FC<SmartInputProps> = ({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -5 }}
                         transition={{ duration: 0.3 }}
-                        // Added 'pl-4 sm:pl-5' here (1 unit more than textarea) to offset cursor
                         className="absolute top-0 left-0 w-full py-3 pl-4 pr-3 sm:pl-5 sm:pr-4 text-zinc-600 text-[16px] leading-relaxed truncate"
                     >
                         {placeholder}

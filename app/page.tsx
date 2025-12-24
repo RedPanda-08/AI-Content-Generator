@@ -8,6 +8,8 @@ import { motion} from 'framer-motion';
 import TestimonialSection from '../components/TestimonialSection';
 import PhonePreview from '@/components/PhonePreview';
 import Logo from '@/components/Logo'; 
+import GetStartedSection from '@/components/GetStartedSection';
+
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
@@ -166,7 +168,6 @@ export default function HomePage() {
             transition={{ duration: 0.5 }}
             className="flex items-center gap-2 sm:gap-3"
           >
-            {/* UPDATED: Replaced Bot icon with your custom Logo */}
             <Logo className="h-9 sm:h-10" />
           </motion.div>
           <motion.nav 
@@ -261,9 +262,7 @@ export default function HomePage() {
         </motion.div>
       </section>
 
-      {/* --- INTERACTIVE SHOWCASE --- */}
 <section className="py-24 relative overflow-hidden bg-black">
-  {/* Graph Background Effect - Increased visibility and added radial mask */}
   <div 
     className="absolute inset-0 z-0 pointer-events-none" 
     style={{ 
@@ -344,12 +343,12 @@ export default function HomePage() {
         </div>
       </motion.section>
       <motion.div 
-         id="demo" 
-         className="py-20 sm:py-32 bg-zinc-900/30 border-y border-white/5 relative overflow-hidden"
-         initial="hidden"
-         whileInView="visible"
-         viewport={{ once: true, margin: "-100px" }}
-         variants={staggerContainer}
+          id="demo" 
+          className="py-20 sm:py-32 bg-zinc-900/30 border-y border-white/5 relative overflow-hidden"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={staggerContainer}
       >
         {/* Glow Effects */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[100px] -z-10" />
@@ -640,53 +639,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section id="how-it-works" className="py-20 sm:py-24 lg:py-32 bg-gradient-to-b from-white/[0.02] to-transparent backdrop-blur-sm border-y border-white/[0.08] relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:32px_32px]"></div>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative">
-          <motion.div 
-             initial="hidden"
-             whileInView="visible"
-             viewport={{ once: true }}
-             variants={fadeInUp}
-             className="text-center mb-16 sm:mb-20 lg:mb-24"
-          >
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight px-4">
-              Get started in
-              <span className="bg-gradient-to-r from-orange-400 via-pink-500 to-red-500 bg-clip-text text-transparent"> minutes</span>
-            </h2>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-400 font-light px-4">Three simple steps to transform your content game</p>
-          </motion.div>
-
-          <motion.div 
-             initial="hidden"
-             whileInView="visible"
-             viewport={{ once: true, margin: "-50px" }}
-             variants={staggerContainer}
-             className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-7 lg:gap-8 relative"
-          >
-            {/* Connection Lines */}
-            <div className="hidden md:block absolute top-16 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-            
-            {[
-              { num: '01', title: 'Define Your Brand', desc: 'Set up your brand voice, tone, and content preferences in minutes', icon: Lightbulb },
-              { num: '02', title: 'Generate Content', desc: 'Enter a topic and watch AI create engaging posts tailored to your audience', icon: Sparkles },
-              { num: '03', title: 'Publish & Analyze', desc: 'Schedule posts and track performance with detailed analytics', icon: TrendingUp }
-            ].map((step, i) => (
-              <motion.div key={i} variants={fadeInUp} className="relative">
-                <div className="bg-gradient-to-br from-white/[0.05] to-white/[0.02] backdrop-blur-md p-6 sm:p-7 lg:p-8 rounded-2xl border border-white/[0.08] hover:border-orange-500/30 transition-all duration-300 h-full hover:shadow-2xl hover:shadow-orange-500/10 group">
-                  <div className="w-14 h-14 sm:w-15 sm:h-15 lg:w-16 lg:h-16 bg-gradient-to-br from-orange-500 to-pink-600 rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-2xl shadow-orange-500/30 relative z-10 group-hover:scale-110 transition-transform">
-                    <step.icon className="w-7 h-7 sm:w-7.5 sm:h-7.5 lg:w-8 lg:h-8 text-white" />
-                  </div>
-                  <div className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white/[0.03] absolute top-4 right-6 sm:right-8 select-none">{step.num}</div>
-                  <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4 group-hover:text-white transition-colors">{step.title}</h3>
-                  <p className="text-gray-400 leading-relaxed font-light text-sm sm:text-base">{step.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+      {/* How It Works Section - UPDATED */}
+      <div id="how-it-works">
+        <GetStartedSection />
+      </div>
 
       {/* Final CTA Section */}
       <section className="py-20 sm:py-24 lg:py-32 relative overflow-hidden">
